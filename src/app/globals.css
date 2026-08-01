@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-charcoal font-body antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-head;
+  }
+  :focus-visible {
+    outline: 2px solid #0a5c2e;
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .trust-gradient {
+    background: linear-gradient(90deg, #0a5c2e, #f0b429, #0d7a3e);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
