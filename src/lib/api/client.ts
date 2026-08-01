@@ -18,13 +18,43 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
   auth?: boolean; // defaults to true — set false for public endpoints called before login
 }
 
-/**
- * Thin fetch wrapper matching the BoaFie API's response envelope:
- * { success, data, meta? } on success, { success: false, error: {...} } on failure.
- * Every hook in lib/api/hooks/* goes through this so auth headers, error
- * unwrapping, and the API base URL live in exactly one place.
- */
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+// Access tokens are short-lived (15 min by default). A single in-flight
+// refresh promise is shared across concurrent requests so a burst of 401s
+// triggers one POST /auth/refresh, not one per request.
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = useAuthStore.getState().refreshToken;
+  if (!refreshToken) return null;
+
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+        const json = await res.json().catch(() => null);
+        if (!res.ok || json?.success === false) {
+          useAuthStore.getState().clearSession();
+          return null;
+        }
+        const { user, access_token, refresh_token } = json.data;
+        useAuthStore.getState().setSession(user, access_token, refresh_token);
+        return access_token as string;
+      } catch {
+        useAuthStore.getState().clearSession();
+        return null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+  return refreshPromise;
+}
+
+async function doFetch(path: string, options: RequestOptions, retryOn401: boolean): Promise<Response> {
   const { body, auth = true, headers, ...rest } = options;
   const token = auth ? useAuthStore.getState().accessToken : null;
 
@@ -37,6 +67,25 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+
+  // Only retry requests that carried a token — auth:false calls (login,
+  // register, refresh itself) 401 for other reasons and must not loop.
+  if (res.status === 401 && auth && retryOn401) {
+    const newToken = await refreshAccessToken();
+    if (newToken) return doFetch(path, options, false);
+  }
+
+  return res;
+}
+
+/**
+ * Thin fetch wrapper matching the BoaFie API's response envelope:
+ * { success, data, meta? } on success, { success: false, error: {...} } on failure.
+ * Every hook in lib/api/hooks/* goes through this so auth headers, error
+ * unwrapping, and the API base URL live in exactly one place.
+ */
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const res = await doFetch(path, options, true);
 
   let json: any = null;
   try {
@@ -59,19 +108,7 @@ async function requestWithMeta<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<{ data: T; meta?: { page: number; limit: number; total: number } }> {
-  const { body, auth = true, headers, ...rest } = options;
-  const token = auth ? useAuthStore.getState().accessToken : null;
-
-  const res = await fetch(`${API_URL}${path}`, {
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-
+  const res = await doFetch(path, options, true);
   const json = await res.json().catch(() => null);
 
   if (!res.ok || json?.success === false) {
