@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../client';
 import { Wallet } from '../types';
 
-interface Transaction {
+export interface Transaction {
   id: string;
   type: string;
   status: string;
@@ -12,6 +12,9 @@ interface Transaction {
   currency: string;
   description?: string | null;
   created_at: string;
+  commission_rate?: number | null;
+  commission_amount?: number | null;
+  net_amount?: number | null;
 }
 
 export function useWallet() {
