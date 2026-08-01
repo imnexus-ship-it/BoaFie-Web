@@ -1,6 +1,14 @@
 import { useAuthStore } from '../store/auth-store';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/v1';
+/** Tolerates a bare host (e.g. from a platform's cross-service env var linking) missing a scheme and/or the /v1 suffix. */
+function normalizeApiUrl(url: string): string {
+  let normalized = url.startsWith('http') ? url : `https://${url}`;
+  normalized = normalized.replace(/\/+$/, '');
+  if (!normalized.endsWith('/v1')) normalized += '/v1';
+  return normalized;
+}
+
+const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/v1');
 
 export class ApiError extends Error {
   status: number;
