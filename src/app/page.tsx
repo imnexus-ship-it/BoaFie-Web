@@ -29,33 +29,34 @@ export default function LandingPage() {
     <div className="min-h-screen bg-cream">
       <Navbar />
 
-      <section className="relative overflow-hidden border-b border-border bg-white px-4 pb-16 pt-20 text-center sm:px-8">
-        <div className="trust-gradient absolute inset-x-0 top-0 h-1" />
-        <span className="mb-6 inline-flex items-center gap-1.5 rounded-pill border border-green/15 bg-green-3 px-3.5 py-1.5 font-head text-xs font-semibold tracking-wide text-green">
+      <section className="relative overflow-hidden bg-gradient-to-br from-navy to-green px-4 pb-16 pt-20 text-center text-white sm:px-8">
+        <span className="mb-6 inline-flex items-center gap-1.5 rounded-pill border border-white/15 bg-white/10 px-3.5 py-1.5 font-head text-xs font-semibold tracking-wide text-white">
           <ShieldCheck className="h-3.5 w-3.5" /> Verification-first marketplace
         </span>
-        <h1 className="mx-auto max-w-2xl font-head text-4xl font-bold leading-tight text-charcoal sm:text-5xl">
-          Hire skilled Ghanaians <span className="text-green">you can actually trust.</span>
+        <h1 className="mx-auto max-w-2xl font-head text-4xl font-bold leading-tight sm:text-5xl">
+          Hire skilled Ghanaians <span className="text-gold-2">you can actually trust.</span>
         </h1>
-        <p className="mx-auto mt-5 max-w-lg text-lg text-muted">
+        <p className="mx-auto mt-5 max-w-lg text-lg text-white/80">
           BoaFie verifies every artisan and freelancer before they ever get hired — so you can hire from home or from
           abroad without the guesswork.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/explore">
-            <Button size="lg">Find a verified worker</Button>
+            <Button size="lg" className="!bg-gold hover:!bg-gold-2">
+              Find a verified worker
+            </Button>
           </Link>
           <Link href="/signup">
-            <Button size="lg" variant="secondary">
+            <Button size="lg" variant="secondary" className="!bg-white !text-navy">
               Join as a worker
             </Button>
           </Link>
         </div>
 
-        <div className="mx-auto mt-10 flex max-w-2xl flex-wrap justify-center gap-6 rounded-lg bg-green-3 p-6">
+        <div className="mx-auto mt-10 flex max-w-2xl flex-wrap justify-center gap-6 rounded-lg bg-white/10 p-6">
           {TRUST_ITEMS.map((t) => (
-            <div key={t.label} className="flex items-center gap-2 text-[13px] font-semibold text-green">
-              <t.icon className="h-[18px] w-[18px]" />
+            <div key={t.label} className="flex items-center gap-2 text-[13px] font-semibold text-white">
+              <t.icon className="h-[18px] w-[18px] text-gold-2" />
               {t.label}
             </div>
           ))}

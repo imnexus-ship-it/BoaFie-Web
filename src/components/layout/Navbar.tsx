@@ -6,6 +6,7 @@ import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { Button } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
+import { Logo } from './Logo';
 import { dashboardPathForRole } from '@/lib/utils/routing';
 
 const LINKS = [
@@ -24,10 +25,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-[100] h-16 border-b border-border bg-white">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-8">
-        <Link href="/" className="flex items-center gap-2 font-head text-[22px] font-bold text-green">
-          BoaFie
-          <span className="mb-0.5 h-2 w-2 rounded-full bg-gold-2" />
-        </Link>
+        <Logo />
 
         <nav className="hidden items-center gap-6 text-sm md:flex">
           {LINKS.map((l) => (

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Logo } from './Logo';
 
 const COLUMNS = [
   {
@@ -27,10 +28,7 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
         <div className="grid gap-10 sm:grid-cols-[1.5fr_1fr_1fr]">
           <div>
-            <div className="flex items-center gap-2 font-head text-xl font-bold text-green">
-              BoaFie
-              <span className="mb-0.5 h-2 w-2 rounded-full bg-gold-2" />
-            </div>
+            <Logo />
             <p className="mt-3 max-w-xs text-sm text-muted">
               The verified way to hire artisans and freelancers in Ghana — trusted by clients at home and across the diaspora.
             </p>

@@ -5,12 +5,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        green: { DEFAULT: '#0a5c2e', 2: '#0d7a3e', 3: '#e8f5ed' },
-        gold: { DEFAULT: '#c9931a', 2: '#f0b429', 3: '#fef8e7' },
-        charcoal: '#1a1a1a',
-        cream: '#f9f6f0',
+        // BoaFie navy/gold brand refresh — "green"/"gold" names kept as-is
+        // (every component already references them) so this file is the
+        // only thing that needed to change to re-theme the whole app.
+        green: { DEFAULT: '#0A3D91', 2: '#0D4BAE', 3: '#EAF1FB' },
+        gold: { DEFAULT: '#F5A300', 2: '#FFB627', 3: '#FEF3E0' },
+        navy: '#072C63',
+        charcoal: '#2F3542',
+        cream: '#F8FAFC',
         muted: '#6b7280',
-        border: 'rgba(0,0,0,0.08)',
+        border: '#E2E8F0',
+        success: '#16A34A',
+        warning: '#F59E0B',
+        danger: '#DC2626',
+        info: '#2563EB',
       },
       fontFamily: {
         head: ['var(--font-sora)', 'sans-serif'],

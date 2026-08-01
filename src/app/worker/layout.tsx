@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
+import { SidebarHelpCard } from '@/components/layout/SidebarHelpCard';
 import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 import { PageSpinner } from '@/components/ui/Spinner';
 
@@ -30,5 +31,9 @@ const LINKS = [
 export default function WorkerLayout({ children }: { children: React.ReactNode }) {
   const { isReady } = useRequireAuth(['artisan', 'freelancer']);
   if (!isReady) return <PageSpinner />;
-  return <DashboardShell links={LINKS}>{children}</DashboardShell>;
+  return (
+    <DashboardShell links={LINKS} messagesHref="/worker/messages" sidebarBottomSlot={<SidebarHelpCard />}>
+      {children}
+    </DashboardShell>
+  );
 }
