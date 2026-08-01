@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageSpinner } from '@/components/ui/Spinner';
@@ -14,6 +15,7 @@ import { formatCurrency } from '@/lib/utils/currency';
 import {
   useApproveMilestone,
   useContract,
+  useCreateMilestone,
   useMilestones,
   useRejectMilestone,
   useStartMilestone,
@@ -158,6 +160,88 @@ function MilestoneRow({
   );
 }
 
+function AddMilestoneForm({ contractId }: { contractId: string }) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [dueDate, setDueDate] = useState('');
+
+  const createMilestone = useCreateMilestone(contractId);
+
+  if (!open) {
+    return (
+      <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+        Add milestone
+      </Button>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        createMilestone.mutate(
+          {
+            title,
+            description: description || undefined,
+            amount_ghs: Number(amount),
+            due_date: dueDate || undefined,
+          },
+          {
+            onSuccess: () => {
+              setTitle('');
+              setDescription('');
+              setAmount('');
+              setDueDate('');
+              setOpen(false);
+            },
+          },
+        );
+      }}
+      className="flex flex-col gap-3 rounded-lg border border-border p-4"
+    >
+      <Input
+        label="Milestone title"
+        required
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="e.g. Frame and cut wood"
+      />
+      <Textarea
+        label="Description (optional)"
+        rows={2}
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label="Amount (GHS)"
+          type="number"
+          required
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+        <Input
+          label="Due date (optional)"
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
+      </div>
+      {createMilestone.isError && <p className="text-sm text-red-600">{createMilestone.error.message}</p>}
+      <div className="flex gap-2">
+        <Button size="sm" type="submit" loading={createMilestone.isPending}>
+          Add milestone
+        </Button>
+        <Button size="sm" variant="ghost" type="button" onClick={() => setOpen(false)}>
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export function ContractDetail({ contractId }: { contractId: string }) {
   const contract = useContract(contractId);
   const milestones = useMilestones(contractId);
@@ -219,6 +303,12 @@ export function ContractDetail({ contractId }: { contractId: string }) {
                   isClient={!!isClient}
                 />
               ))}
+            </div>
+          )}
+
+          {isClient && c.status === 'in_progress' && (
+            <div className="mt-4">
+              <AddMilestoneForm contractId={contractId} />
             </div>
           )}
         </CardBody>
