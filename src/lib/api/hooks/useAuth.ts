@@ -37,3 +37,20 @@ export function useLogout() {
     api.post('/auth/logout', undefined, { auth: false }).catch(() => undefined);
   };
 }
+
+export function useGoogleLogin() {
+  const setSession = useAuthStore((s) => s.setSession);
+  return useMutation<AuthResponse, ApiError, { id_token: string; role?: 'client' | 'artisan' | 'freelancer' }>({
+    mutationFn: (body) => api.post<AuthResponse>('/auth/google', body, { auth: false }),
+    onSuccess: (data) => setSession(data.user, data.access_token, data.refresh_token),
+  });
+}
+
+/** Completes the Yahoo redirect flow: trades the one-time handoff code (from the callback URL) for real tokens. */
+export function useExchangeHandoff() {
+  const setSession = useAuthStore((s) => s.setSession);
+  return useMutation<AuthResponse, ApiError, { handoff: string }>({
+    mutationFn: (body) => api.post<AuthResponse>('/auth/exchange', body, { auth: false }),
+    onSuccess: (data) => setSession(data.user, data.access_token, data.refresh_token),
+  });
+}

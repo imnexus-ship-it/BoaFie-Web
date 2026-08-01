@@ -9,6 +9,7 @@ import { PageSpinner } from '@/components/ui/Spinner';
 import { useMe } from '@/lib/api/hooks/useDashboard';
 import { api } from '@/lib/api/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { DeleteAccountCard } from '@/components/settings/DeleteAccountCard';
 
 export default function WorkerSettingsPage() {
   const { data: me, isLoading } = useMe();
@@ -66,6 +67,10 @@ export default function WorkerSettingsPage() {
           </form>
         </CardBody>
       </Card>
+
+      <div className="mt-6">
+        <DeleteAccountCard />
+      </div>
     </div>
   );
 }
