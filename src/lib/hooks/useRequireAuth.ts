@@ -14,8 +14,10 @@ export function useRequireAuth(allowedRoles?: Array<'client' | 'artisan' | 'free
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
 
   useEffect(() => {
+    if (!hasHydrated) return; // persisted session hasn't loaded yet — don't redirect prematurely
     if (!accessToken || !user) {
       router.replace('/login');
       return;
@@ -24,7 +26,7 @@ export function useRequireAuth(allowedRoles?: Array<'client' | 'artisan' | 'free
       router.replace('/dashboard');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, user]);
+  }, [hasHydrated, accessToken, user]);
 
-  return { user, isReady: !!accessToken && !!user };
+  return { user, isReady: hasHydrated && !!accessToken && !!user };
 }
