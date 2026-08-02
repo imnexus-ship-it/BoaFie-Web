@@ -60,7 +60,6 @@ export function HomeHeader() {
           <NavDropdown
             label="Resources"
             items={[
-              { href: '/about', label: 'About Us' },
               { href: '/contact', label: 'Contact' },
               { href: '/pricing', label: 'Pricing' },
               { href: '/privacy', label: 'Privacy Policy' },
