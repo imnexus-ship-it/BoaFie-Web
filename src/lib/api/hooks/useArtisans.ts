@@ -58,6 +58,7 @@ export interface ArtisanProfileInput {
   location_text?: string;
   lat?: number;
   lng?: number;
+  ai_bio?: string;
 }
 
 export function useCreateArtisanProfile() {

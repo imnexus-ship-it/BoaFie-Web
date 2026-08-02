@@ -9,15 +9,18 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { ProposalCard } from '@/components/jobs/ProposalCard';
+import { WorkerCard, WorkerLike } from '@/components/marketplace/WorkerCard';
 import { formatBudgetRange } from '@/lib/utils/currency';
 import { useJob } from '@/lib/api/hooks/useJobs';
 import { useJobProposals } from '@/lib/api/hooks/useProposals';
 import { useAcceptProposal, useRejectProposal } from '@/lib/api/hooks/useProposals';
+import { useWorkerMatches } from '@/lib/api/hooks/useMatching';
 
 export default function MyJobDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const job = useJob(id);
   const proposals = useJobProposals(id);
+  const matches = useWorkerMatches(id);
   const accept = useAcceptProposal();
   const reject = useRejectProposal();
 
@@ -56,6 +59,22 @@ export default function MyJobDetailPage({ params }: { params: { id: string } }) 
             />
           ))}
         </div>
+      )}
+
+      {job.data.status === 'open' && (matches.data?.length ?? 0) > 0 && (
+        <>
+          <h2 className="mb-4 mt-8 font-head text-lg font-semibold text-charcoal">Recommended workers</h2>
+          <p className="-mt-2 mb-4 text-sm text-muted">Ranked by fit for this job — category, location, and rate.</p>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {matches.data!.map((m) => (
+              <WorkerCard
+                key={m.profile.id}
+                worker={{ ...m.profile, kind: m.type } as WorkerLike}
+                verified={m.profile.users?.status === 'active'}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <div className="mt-6">

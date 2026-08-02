@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Clock, Globe2, MapPin } from 'lucide-react';
+import { Clock, Globe2, MapPin, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
@@ -12,6 +12,7 @@ import { formatBudgetRange } from '@/lib/utils/currency';
 import { timeAgo } from '@/lib/utils/date';
 import { useJob } from '@/lib/api/hooks/useJobs';
 import { useSubmitProposal } from '@/lib/api/hooks/useProposals';
+import { useDraftProposal } from '@/lib/api/hooks/useAi';
 import { useAuthStore } from '@/lib/store/auth-store';
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
@@ -19,6 +20,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const { data: job, isLoading, isError, error, refetch } = useJob(id);
   const { user } = useAuthStore();
   const submitProposal = useSubmitProposal(id);
+  const draftProposal = useDraftProposal();
 
   const [coverLetter, setCoverLetter] = useState('');
   const [rate, setRate] = useState('');
@@ -83,14 +85,39 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 }}
                 className="flex flex-col gap-4"
               >
-                <Textarea
-                  label="Cover letter"
-                  required
-                  rows={4}
-                  value={coverLetter}
-                  onChange={(e) => setCoverLetter(e.target.value)}
-                  placeholder="Explain why you're a great fit for this job."
-                />
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <label htmlFor="cover-letter" className="text-sm font-medium text-charcoal">
+                      Cover letter
+                    </label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="px-2 py-1 text-green"
+                      loading={draftProposal.isPending}
+                      onClick={() =>
+                        draftProposal.mutate(id, {
+                          onSuccess: (data) => setCoverLetter(data.cover_letter),
+                        })
+                      }
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Draft with AI
+                    </Button>
+                  </div>
+                  <Textarea
+                    id="cover-letter"
+                    required
+                    rows={4}
+                    value={coverLetter}
+                    onChange={(e) => setCoverLetter(e.target.value)}
+                    placeholder="Explain why you're a great fit for this job."
+                  />
+                  {draftProposal.isError && (
+                    <p className="mt-1 text-xs text-red-600">{draftProposal.error.message}</p>
+                  )}
+                </div>
                 <Input
                   label="Your proposed rate (GHS)"
                   type="number"

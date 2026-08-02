@@ -150,6 +150,12 @@ export interface Verification {
   overall_verified: boolean;
 }
 
+export interface WorkerMatch {
+  type: 'artisan' | 'freelancer';
+  score: number;
+  profile: ArtisanProfile | FreelancerProfile;
+}
+
 export interface DashboardSummary {
   role: UserRole;
   active_jobs?: number;

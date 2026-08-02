@@ -45,6 +45,7 @@ export interface FreelancerProfileInput {
   hourly_rate_ghs?: number;
   remote_only?: boolean;
   location_text?: string;
+  ai_bio?: string;
 }
 
 export function useCreateFreelancerProfile() {
