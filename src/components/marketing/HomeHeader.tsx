@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { ChevronDown, Globe, Menu, X } from 'lucide-react';
 import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui';
+import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/lib/utils/cn';
+import { useAuthStore } from '@/lib/store/auth-store';
+import { dashboardPathForRole } from '@/lib/utils/routing';
 
 function NavDropdown({ label, items }: { label: string; items: { href: string; label: string }[] }) {
   const [open, setOpen] = useState(false);
@@ -30,6 +33,8 @@ function NavDropdown({ label, items }: { label: string; items: { href: string; l
 
 export function HomeHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, clearSession } = useAuthStore();
+  const dashboardHref = user ? dashboardPathForRole(user.role) : '/dashboard';
 
   return (
     <header className="relative z-50 px-4 py-5 sm:px-8">
@@ -41,8 +46,8 @@ export function HomeHeader() {
             label="Find Professionals"
             items={[
               { href: '/explore', label: 'All Professionals' },
-              { href: '/explore?type=artisan', label: 'Artisans' },
-              { href: '/explore?type=freelancer', label: 'Freelancers' },
+              { href: '/explore?tab=artisans', label: 'Artisans' },
+              { href: '/explore?tab=freelancers', label: 'Freelancers' },
             ]}
           />
           <a href="#how-it-works" className="text-sm font-medium text-white/90 hover:text-white">
@@ -71,16 +76,35 @@ export function HomeHeader() {
             <Globe className="h-4 w-4" />
             EN
           </span>
-          <Link href="/login">
-            <Button variant="outline" size="sm" className="!border-white/30 !text-white hover:!bg-white/10">
-              Log In
-            </Button>
-          </Link>
-          <Link href="/signup">
-            <Button size="sm" className="!bg-gold hover:!bg-gold-2">
-              Sign Up
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <Link href={dashboardHref} className="flex items-center gap-2 text-sm font-medium text-white hover:text-white/80">
+                <Avatar src={user.avatar_url} name={user.full_name} size={30} />
+                {user.full_name?.split(' ')[0]}
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                className="!border-white/30 !text-white hover:!bg-white/10"
+                onClick={clearSession}
+              >
+                Log Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button variant="outline" size="sm" className="!border-white/30 !text-white hover:!bg-white/10">
+                  Log In
+                </Button>
+              </Link>
+              <Link href="/signup">
+                <Button size="sm" className="!bg-gold hover:!bg-gold-2">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <button className="p-2 text-white lg:hidden" onClick={() => setMobileOpen((o) => !o)} aria-label="Toggle menu">
@@ -102,18 +126,42 @@ export function HomeHeader() {
           <Link href="/about" className="text-sm font-medium text-white" onClick={() => setMobileOpen(false)}>
             About Us
           </Link>
-          <div className="mt-2 flex gap-2">
-            <Link href="/login" className="flex-1">
-              <Button variant="outline" size="sm" className="w-full !border-white/30 !text-white">
-                Log In
+          {user ? (
+            <div className="mt-2 flex items-center gap-3">
+              <Link
+                href={dashboardHref}
+                className="flex flex-1 items-center gap-2 text-sm font-medium text-white"
+                onClick={() => setMobileOpen(false)}
+              >
+                <Avatar src={user.avatar_url} name={user.full_name} size={30} />
+                {user.full_name?.split(' ')[0]}
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                className="!border-white/30 !text-white"
+                onClick={() => {
+                  clearSession();
+                  setMobileOpen(false);
+                }}
+              >
+                Log Out
               </Button>
-            </Link>
-            <Link href="/signup" className="flex-1">
-              <Button size="sm" className="w-full !bg-gold hover:!bg-gold-2">
-                Sign Up
-              </Button>
-            </Link>
-          </div>
+            </div>
+          ) : (
+            <div className="mt-2 flex gap-2">
+              <Link href="/login" className="flex-1">
+                <Button variant="outline" size="sm" className="w-full !border-white/30 !text-white">
+                  Log In
+                </Button>
+              </Link>
+              <Link href="/signup" className="flex-1">
+                <Button size="sm" className="w-full !bg-gold hover:!bg-gold-2">
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

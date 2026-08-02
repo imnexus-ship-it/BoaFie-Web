@@ -37,6 +37,15 @@ export function useConversation(id: string | undefined) {
   });
 }
 
+export function useCreateConversation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { participant_ids: string[]; job_id?: string; contract_id?: string }) =>
+      api.post<Conversation>('/conversations', body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+  });
+}
+
 export function useSendMessage(conversationId: string) {
   const queryClient = useQueryClient();
   return useMutation({

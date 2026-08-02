@@ -6,14 +6,10 @@ import { HomeHero } from '@/components/marketing/HomeHero';
 import { StatsBar } from '@/components/marketing/StatsBar';
 import { HowItWorks } from '@/components/marketing/HowItWorks';
 import { Button } from '@/components/ui';
+import { POPULAR_CATEGORIES } from '@/lib/constants/categories';
 
-const CATEGORIES = [
-  { icon: Hammer, label: 'Carpentry' },
-  { icon: Wrench, label: 'Plumbing & Electrical' },
-  { icon: Paintbrush, label: 'Painting & Finishing' },
-  { icon: Code2, label: 'Web Development' },
-  { icon: Palette, label: 'Design & Creative' },
-];
+const CATEGORY_ICONS = [Hammer, Wrench, Paintbrush, Code2, Palette];
+const CATEGORIES = POPULAR_CATEGORIES.map((c, i) => ({ ...c, icon: CATEGORY_ICONS[i] }));
 
 export default function LandingPage() {
   return (
@@ -33,7 +29,7 @@ export default function LandingPage() {
           {CATEGORIES.map((c) => (
             <Link
               key={c.label}
-              href={`/explore?category=${encodeURIComponent(c.label.toLowerCase())}`}
+              href={`/explore?tab=${c.tab}&category=${c.slug}`}
               className="flex items-center gap-2 rounded-pill border border-border bg-white px-4 py-2.5 text-sm font-medium text-charcoal hover:border-green hover:text-green"
             >
               <c.icon className="h-4 w-4" />

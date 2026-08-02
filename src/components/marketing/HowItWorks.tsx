@@ -80,7 +80,7 @@ export function HowItWorks() {
               </li>
             ))}
           </ul>
-          <Link href="/signup" className="mt-6 block">
+          <Link href="/signup?role=artisan" className="mt-6 block">
             <Button className="w-full !bg-gold hover:!bg-gold-2">
               Join as a Professional <ArrowRight className="h-4 w-4" />
             </Button>

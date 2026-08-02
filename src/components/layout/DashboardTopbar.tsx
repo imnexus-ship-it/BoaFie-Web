@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Bell, MessageSquare, Search, ChevronDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuthStore } from '@/lib/store/auth-store';
@@ -9,6 +10,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { useDashboard } from '@/lib/api/hooks/useDashboard';
 import { useConversations } from '@/lib/api/hooks/useMessaging';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/lib/api/hooks/useNotifications';
+import { settingsPathForRole } from '@/lib/utils/routing';
 
 const ROLE_LABEL: Record<string, string> = {
   client: 'Customer',
@@ -19,6 +21,7 @@ const ROLE_LABEL: Record<string, string> = {
 
 export function DashboardTopbar({ messagesHref }: { messagesHref?: string }) {
   const { user, clearSession } = useAuthStore();
+  const router = useRouter();
   const dashboard = useDashboard();
   const conversations = useConversations();
   const notifications = useNotifications();
@@ -26,6 +29,8 @@ export function DashboardTopbar({ messagesHref }: { messagesHref?: string }) {
   const markAllRead = useMarkAllNotificationsRead();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const settingsHref = user ? settingsPathForRole(user.role) : null;
 
   const unreadNotifications = dashboard.data?.unread_notifications ?? 0;
   const conversationCount = conversations.data?.length ?? 0;
@@ -33,14 +38,24 @@ export function DashboardTopbar({ messagesHref }: { messagesHref?: string }) {
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-white px-4 sm:px-8">
-      <div className="relative hidden max-w-md flex-1 sm:block">
+      <form
+        className="relative hidden max-w-md flex-1 sm:block"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const q = searchValue.trim();
+          if (!q) return;
+          router.push(`/explore?location=${encodeURIComponent(q)}`);
+        }}
+      >
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
         <input
           type="search"
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
           placeholder="Search for services, professionals, or locations…"
           className="w-full rounded-lg border border-border bg-cream py-2 pl-9 pr-4 text-sm text-charcoal placeholder:text-muted focus:border-green focus:outline-none"
         />
-      </div>
+      </form>
       <div className="flex-1 sm:hidden" />
 
       <div className="flex items-center gap-1">
@@ -120,9 +135,11 @@ export function DashboardTopbar({ messagesHref }: { messagesHref?: string }) {
           <>
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
             <div className="absolute right-0 z-20 mt-2 w-44 rounded-lg border border-border bg-white py-1 shadow-card">
-              <Link href="/settings" className="block px-4 py-2 text-sm text-charcoal hover:bg-cream" onClick={() => setMenuOpen(false)}>
-                My Profile
-              </Link>
+              {settingsHref && (
+                <Link href={settingsHref} className="block px-4 py-2 text-sm text-charcoal hover:bg-cream" onClick={() => setMenuOpen(false)}>
+                  My Profile
+                </Link>
+              )}
               <button
                 className="block w-full px-4 py-2 text-left text-sm text-danger hover:bg-cream"
                 onClick={() => {

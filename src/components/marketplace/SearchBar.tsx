@@ -5,12 +5,14 @@ import { useState } from 'react';
 
 export function SearchBar({
   placeholder = 'Search…',
+  defaultValue = '',
   onSearch,
 }: {
   placeholder?: string;
+  defaultValue?: string;
   onSearch: (query: string) => void;
 }) {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(defaultValue);
   return (
     <form
       onSubmit={(e) => {

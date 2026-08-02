@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { Users } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { CategoryFilter } from '@/components/marketplace/CategoryFilter';
 import { SearchBar } from '@/components/marketplace/SearchBar';
 import { WorkerCard, WorkerLike } from '@/components/marketplace/WorkerCard';
@@ -12,10 +13,13 @@ import { useCategories } from '@/lib/api/hooks/useCategories';
 import { useArtisans } from '@/lib/api/hooks/useArtisans';
 import { useFreelancers } from '@/lib/api/hooks/useFreelancers';
 
-export default function ExplorePage() {
-  const [category, setCategory] = useState<string | undefined>(undefined);
-  const [location, setLocation] = useState('');
-  const [tab, setTab] = useState<'artisans' | 'freelancers'>('artisans');
+function ExploreContent() {
+  const params = useSearchParams();
+  const initialTab = params.get('tab') === 'freelancers' ? 'freelancers' : 'artisans';
+
+  const [category, setCategory] = useState<string | undefined>(params.get('category') ?? undefined);
+  const [location, setLocation] = useState(params.get('location') ?? '');
+  const [tab, setTab] = useState<'artisans' | 'freelancers'>(initialTab);
 
   const { data: categories } = useCategories();
   const artisans = useArtisans({ category: tab === 'artisans' ? category : undefined, location });
@@ -51,7 +55,7 @@ export default function ExplorePage() {
       </div>
 
       <div className="mb-6 flex flex-col gap-3 sm:flex-row">
-        <SearchBar placeholder="Search by location…" onSearch={setLocation} />
+        <SearchBar placeholder="Search by location…" defaultValue={location} onSearch={setLocation} />
       </div>
 
       {categories && categories.filter((c) => c.type === (tab === 'artisans' ? 'artisan' : 'freelancer') || c.type === 'both').length > 0 && (
@@ -80,5 +84,13 @@ export default function ExplorePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={null}>
+      <ExploreContent />
+    </Suspense>
   );
 }

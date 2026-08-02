@@ -6,14 +6,13 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, CheckCircle2, Lock, Star, Search, MapPin, LayoutGrid, HardHat } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
+import { POPULAR_CATEGORIES } from '@/lib/constants/categories';
 
 const TRUST_BADGES = [
   { icon: CheckCircle2, label: 'Verified Professionals' },
   { icon: Lock, label: 'Secure Escrow Payments' },
   { icon: Star, label: 'Satisfaction Guaranteed' },
 ];
-
-const CATEGORY_OPTIONS = ['All Categories', 'Carpentry', 'Plumbing & Electrical', 'Painting & Finishing', 'Web Development', 'Design & Creative'];
 
 export function HomeHero() {
   const router = useRouter();
@@ -43,7 +42,7 @@ export function HomeHero() {
                 Find a Professional <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/signup">
+            <Link href="/signup?role=artisan">
               <Button size="lg" variant="outline" className="!border-white/30 !text-white hover:!bg-white/10">
                 Become a Professional
               </Button>
@@ -124,8 +123,9 @@ export function HomeHero() {
               onChange={(e) => setCategory(e.target.value)}
               className="w-full appearance-none bg-transparent text-sm text-charcoal focus:outline-none"
             >
-              {CATEGORY_OPTIONS.map((c) => (
-                <option key={c}>{c}</option>
+              <option>All Categories</option>
+              {POPULAR_CATEGORIES.map((c) => (
+                <option key={c.slug}>{c.label}</option>
               ))}
             </select>
           </div>
@@ -134,10 +134,15 @@ export function HomeHero() {
           <Button
             className="w-full !bg-gold hover:!bg-gold-2 sm:w-auto"
             onClick={() => {
+              const selected = POPULAR_CATEGORIES.find((c) => c.label === category);
               const params = new URLSearchParams();
-              if (service) params.set('category', service);
-              if (location) params.set('location', location);
-              if (category !== 'All Categories') params.set('type', category);
+              params.set('tab', selected?.tab ?? 'artisans');
+              if (selected) {
+                params.set('category', selected.slug);
+              } else if (service.trim()) {
+                params.set('category', service.trim().toLowerCase());
+              }
+              if (location.trim()) params.set('location', location.trim());
               router.push(`/explore?${params.toString()}`);
             }}
           >

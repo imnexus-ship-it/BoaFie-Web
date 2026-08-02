@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { MapPin, Briefcase } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
@@ -10,9 +11,21 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { formatCurrency } from '@/lib/utils/currency';
 import { useArtisan } from '@/lib/api/hooks/useArtisans';
 import { useFreelancer } from '@/lib/api/hooks/useFreelancers';
+import { useConversations, useCreateConversation } from '@/lib/api/hooks/useMessaging';
+import { useAuthStore } from '@/lib/store/auth-store';
+
+const MESSAGES_BASE: Record<string, string> = {
+  client: '/messages',
+  artisan: '/worker/messages',
+  freelancer: '/worker/messages',
+};
 
 export default function WorkerProfilePage({ params }: { params: { id: string } }) {
   const { id } = params;
+  const router = useRouter();
+  const currentUser = useAuthStore((s) => s.user);
+  const conversations = useConversations();
+  const createConversation = useCreateConversation();
 
   // Profile IDs aren't namespaced by type in the URL, so try artisan first,
   // fall back to freelancer. (A combined /workers/:id lookup on the API would
@@ -24,6 +37,23 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
 
   const worker = artisan.data || freelancer.data;
   if (!worker) return <ErrorState message="Worker not found" />;
+
+  const messagesBase = currentUser ? MESSAGES_BASE[currentUser.role] : undefined;
+
+  const handleContact = async () => {
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+    const workerUserId = worker.user_id;
+    const existing = conversations.data?.find((c) => c.participant_ids.includes(workerUserId));
+    if (existing) {
+      router.push(`${messagesBase}/${existing.id}`);
+      return;
+    }
+    const conversation = await createConversation.mutateAsync({ participant_ids: [workerUserId] });
+    router.push(`${messagesBase}/${conversation.id}`);
+  };
 
   const isArtisan = !!artisan.data;
   const name = worker.users?.full_name || 'BoaFie worker';
@@ -56,7 +86,11 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
             {worker.hourly_rate_ghs && (
               <p className="font-head text-xl font-bold text-green">{formatCurrency(worker.hourly_rate_ghs)}/hr</p>
             )}
-            <Button className="mt-3">Contact</Button>
+            {(!currentUser || messagesBase) && (
+              <Button className="mt-3" loading={createConversation.isPending} onClick={handleContact}>
+                Contact
+              </Button>
+            )}
           </div>
         </CardBody>
       </Card>

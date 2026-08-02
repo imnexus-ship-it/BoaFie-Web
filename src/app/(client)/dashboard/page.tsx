@@ -82,7 +82,10 @@ export default function ClientDashboardPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                router.push(`/explore?category=${encodeURIComponent(service)}&location=${encodeURIComponent(location)}`);
+                const params = new URLSearchParams();
+                if (service.trim()) params.set('category', service.trim().toLowerCase());
+                if (location.trim()) params.set('location', location.trim());
+                router.push(`/explore?${params.toString()}`);
               }}
               className="mt-6 flex flex-col gap-2 rounded-lg bg-white p-2 sm:flex-row"
             >

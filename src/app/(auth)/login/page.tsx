@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { LoginForm } from '@/components/auth/LoginForm';
+import { useRedirectIfAuthed } from '@/lib/hooks/useRedirectIfAuthed';
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   yahoo: "Yahoo sign-in didn't go through. Please try again.",
@@ -23,6 +24,9 @@ function OAuthErrorBanner() {
 }
 
 export default function LoginPage() {
+  const { checking } = useRedirectIfAuthed();
+  if (checking) return null;
+
   return (
     <div>
       <h1 className="mb-1 font-head text-xl font-bold text-charcoal">Welcome back</h1>

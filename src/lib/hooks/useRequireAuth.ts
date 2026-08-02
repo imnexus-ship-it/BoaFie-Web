@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../store/auth-store';
+import { dashboardPathForRole } from '../utils/routing';
 
 /**
  * Client-side guard for dashboard route groups. The API itself is the real
@@ -23,7 +24,7 @@ export function useRequireAuth(allowedRoles?: Array<'client' | 'artisan' | 'free
       return;
     }
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-      router.replace('/dashboard');
+      router.replace(dashboardPathForRole(user.role));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasHydrated, accessToken, user]);
