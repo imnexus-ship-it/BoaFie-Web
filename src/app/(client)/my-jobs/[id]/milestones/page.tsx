@@ -1,6 +1,8 @@
 'use client';
 
 import { ListChecks } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function JobMilestonesRedirectPage({ params }: { params: { id: string } }) {
@@ -12,6 +14,11 @@ export default function JobMilestonesRedirectPage({ params }: { params: { id: st
       icon={ListChecks}
       title="Milestones move to the contract"
       description="Once you accept a proposal, a contract is created — manage milestones from Contracts."
+      action={
+        <Link href="/contracts">
+          <Button>Go to Contracts</Button>
+        </Link>
+      }
     />
   );
 }

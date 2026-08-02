@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Search } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { CategoryFilter } from '@/components/marketplace/CategoryFilter';
 import { SearchBar } from '@/components/marketplace/SearchBar';
 import { JobCard } from '@/components/marketplace/JobCard';
@@ -11,9 +12,10 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useCategories } from '@/lib/api/hooks/useCategories';
 import { useJobs } from '@/lib/api/hooks/useJobs';
 
-export default function FindJobsPage() {
-  const [category, setCategory] = useState<string | undefined>(undefined);
-  const [location, setLocation] = useState('');
+function FindJobsContent() {
+  const params = useSearchParams();
+  const [category, setCategory] = useState<string | undefined>(params.get('category') ?? undefined);
+  const [location, setLocation] = useState(params.get('location') ?? '');
 
   const { data: categories } = useCategories();
   const jobs = useJobs({ category, location });
@@ -24,7 +26,7 @@ export default function FindJobsPage() {
       <p className="mb-6 text-sm text-muted">Browse open jobs matching your trade or skills.</p>
 
       <div className="mb-6 flex flex-col gap-3 sm:flex-row">
-        <SearchBar placeholder="Search by location…" onSearch={setLocation} />
+        <SearchBar placeholder="Search by location…" defaultValue={location} onSearch={setLocation} />
       </div>
 
       {categories && categories.length > 0 && (
@@ -49,5 +51,13 @@ export default function FindJobsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function FindJobsPage() {
+  return (
+    <Suspense fallback={null}>
+      <FindJobsContent />
+    </Suspense>
   );
 }

@@ -1,17 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { Receipt } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageSpinner } from '@/components/ui/Spinner';
+import { Pagination } from '@/components/ui/Pagination';
 import { useAdminTransactions } from '@/lib/api/hooks/useAdmin';
 import { formatCurrency } from '@/lib/utils/currency';
 import { timeAgo } from '@/lib/utils/date';
 
 export default function AdminTransactionsPage() {
-  const { data, isLoading, isError, error, refetch } = useAdminTransactions();
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, error, refetch } = useAdminTransactions(page);
   const transactions = data?.data || [];
 
   return (
@@ -58,6 +61,8 @@ export default function AdminTransactionsPage() {
           </table>
         </Card>
       )}
+
+      {data?.meta && <Pagination page={page} limit={data.meta.limit} total={data.meta.total} onChange={setPage} />}
     </div>
   );
 }

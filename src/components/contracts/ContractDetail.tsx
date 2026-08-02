@@ -290,7 +290,14 @@ export function ContractDetail({ contractId }: { contractId: string }) {
       <Card>
         <CardBody>
           <h2 className="mb-1 font-head text-base font-semibold text-charcoal">Milestones</h2>
-          {milestones.isLoading ? null : (milestones.data || []).length === 0 ? (
+          {milestones.isLoading ? null : milestones.isError ? (
+            <div className="flex items-center justify-between py-4">
+              <p className="text-sm text-red-600">Couldn't load milestones.</p>
+              <Button variant="secondary" size="sm" onClick={() => milestones.refetch()}>
+                Retry
+              </Button>
+            </div>
+          ) : (milestones.data || []).length === 0 ? (
             <p className="py-4 text-sm text-muted">No milestones set up yet for this contract.</p>
           ) : (
             <div className="mt-2">

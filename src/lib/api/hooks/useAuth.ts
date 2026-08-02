@@ -10,6 +10,16 @@ interface AuthResponse {
   refresh_token: string;
 }
 
+/**
+ * Set on successful email/password registration for worker roles, read
+ * once by the worker dashboard to prompt phone verification right after
+ * signup — see components/verification/PhoneVerification.tsx. Written
+ * inside this hook's own onSuccess (not a per-call one) because
+ * useRedirectIfAuthed can navigate away the instant setSession fires,
+ * racing past anything attached to the .mutate() call itself.
+ */
+export const JUST_SIGNED_UP_KEY = 'boafie-just-signed-up';
+
 export function useLogin() {
   const setSession = useAuthStore((s) => s.setSession);
   return useMutation<AuthResponse, ApiError, { email: string; password: string }>({
@@ -26,7 +36,12 @@ export function useRegister() {
     { email: string; password: string; full_name: string; role: 'client' | 'artisan' | 'freelancer'; phone?: string }
   >({
     mutationFn: (body) => api.post<AuthResponse>('/auth/register', body, { auth: false }),
-    onSuccess: (data) => setSession(data.user, data.access_token, data.refresh_token),
+    onSuccess: (data) => {
+      setSession(data.user, data.access_token, data.refresh_token);
+      if (data.user.role === 'artisan' || data.user.role === 'freelancer') {
+        sessionStorage.setItem(JUST_SIGNED_UP_KEY, '1');
+      }
+    },
   });
 }
 

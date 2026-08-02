@@ -9,11 +9,13 @@ export function WalletCard({
   pending,
   lifetime,
   currency = 'GHS',
+  action,
 }: {
   balance: number;
   pending: number;
   lifetime: number;
   currency?: string;
+  action?: React.ReactNode;
 }) {
   return (
     <Card className="bg-green text-white">
@@ -27,6 +29,7 @@ export function WalletCard({
           <span>Pending: {formatCurrency(pending, currency)}</span>
           <span>Lifetime: {formatCurrency(lifetime, currency)}</span>
         </div>
+        {action && <div className="mt-4">{action}</div>}
       </CardBody>
     </Card>
   );

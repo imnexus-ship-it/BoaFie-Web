@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageSpinner } from '@/components/ui/Spinner';
@@ -28,7 +29,16 @@ export default function ClientPaymentsPage() {
       <Card>
         <CardBody>
           <h2 className="mb-2 font-head text-base font-semibold text-charcoal">Transaction history</h2>
-          <TransactionList transactions={transactions.data?.data || []} />
+          {transactions.isError ? (
+            <div className="flex items-center justify-between py-4">
+              <p className="text-sm text-red-600">Couldn't load transactions.</p>
+              <Button variant="secondary" size="sm" onClick={() => transactions.refetch()}>
+                Retry
+              </Button>
+            </div>
+          ) : (
+            <TransactionList transactions={transactions.data?.data || []} />
+          )}
         </CardBody>
       </Card>
     </div>

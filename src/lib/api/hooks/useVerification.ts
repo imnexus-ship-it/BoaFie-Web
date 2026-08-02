@@ -12,6 +12,20 @@ export function useVerificationStatus() {
   });
 }
 
+export function useSendPhoneOtp() {
+  return useMutation({
+    mutationFn: (phone: string) => api.post<{ sent: boolean }>('/verification/phone/send', { phone }),
+  });
+}
+
+export function useConfirmPhoneOtp() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { phone: string; code: string }) => api.post<Verification>('/verification/phone/confirm', body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['verification', 'status'] }),
+  });
+}
+
 export function useSubmitId() {
   const queryClient = useQueryClient();
   return useMutation({

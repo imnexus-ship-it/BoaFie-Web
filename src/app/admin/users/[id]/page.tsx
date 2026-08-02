@@ -1,36 +1,61 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
+import { Users as UsersIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
-import { PageSpinner } from '@/components/ui/Spinner';
-import { ErrorState } from '@/components/ui/ErrorState';
-import { api } from '@/lib/api/client';
-import { User, Verification } from '@/lib/api/types';
-import { useAdminBanUser, useAdminReinstateUser, useAdminSuspendUser } from '@/lib/api/hooks/useAdmin';
-
-type AdminUserDetail = User & {
-  verifications?: Verification[];
-  artisan_profiles?: unknown[];
-  freelancer_profiles?: unknown[];
-};
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Modal } from '@/components/ui/Modal';
+import { User } from '@/lib/api/types';
+import {
+  useAdminBanUser,
+  useAdminPromoteToAdmin,
+  useAdminReinstateUser,
+  useAdminSuspendUser,
+} from '@/lib/api/hooks/useAdmin';
 
 export default function AdminUserDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['admin', 'users', id],
-    queryFn: () => api.get<AdminUserDetail>(`/admin/users/${id}`),
-  });
+  const queryClient = useQueryClient();
+
+  // There's no GET /admin/users/:id endpoint on the API — this reuses
+  // whatever's already cached from the Users list (any filter/page) instead
+  // of calling a route that doesn't exist. Works when navigating from the
+  // list; a direct link to this page won't have anything cached yet.
+  const data = useMemo(() => {
+    const cached = queryClient.getQueriesData<{ data: User[] }>({ queryKey: ['admin', 'users'] });
+    for (const [, page] of cached) {
+      const found = page?.data.find((u) => u.id === id);
+      if (found) return found;
+    }
+    return undefined;
+  }, [queryClient, id]);
 
   const suspend = useAdminSuspendUser();
   const ban = useAdminBanUser();
   const reinstate = useAdminReinstateUser();
+  const promote = useAdminPromoteToAdmin();
   const [reason, setReason] = useState('');
+  const [confirmBanOpen, setConfirmBanOpen] = useState(false);
+  const [confirmPromoteOpen, setConfirmPromoteOpen] = useState(false);
 
-  if (isLoading) return <PageSpinner />;
-  if (isError || !data) return <ErrorState message={error?.message} onRetry={() => refetch()} />;
+  if (!data) {
+    return (
+      <EmptyState
+        icon={UsersIcon}
+        title="Open this user from the Users list"
+        description="There's no direct lookup yet, so this page only works when you click through from Users."
+        action={
+          <Link href="/admin/users">
+            <Button>Go to Users</Button>
+          </Link>
+        }
+      />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -91,13 +116,72 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
               </Button>
             )}
             {data.status !== 'banned' && (
-              <Button size="sm" variant="danger" loading={ban.isPending} onClick={() => ban.mutate({ id, reason })}>
+              <Button size="sm" variant="danger" loading={ban.isPending} onClick={() => setConfirmBanOpen(true)}>
                 Ban
               </Button>
             )}
           </div>
+          {ban.isError && <p className="mt-3 text-sm text-red-600">{ban.error.message}</p>}
         </CardBody>
       </Card>
+
+      {data.role !== 'admin' && (
+        <Card className="mt-4 border-gold/40">
+          <CardBody>
+            <h2 className="mb-1 font-head text-base font-semibold text-charcoal">Admin access</h2>
+            <p className="mb-3 text-sm text-muted">
+              Grants full admin privileges — user management, moderation, disputes, and financial data.
+            </p>
+            <Button size="sm" variant="secondary" onClick={() => setConfirmPromoteOpen(true)}>
+              Make admin
+            </Button>
+            {promote.isError && <p className="mt-3 text-sm text-red-600">{promote.error.message}</p>}
+          </CardBody>
+        </Card>
+      )}
+
+      <Modal open={confirmPromoteOpen} onClose={() => setConfirmPromoteOpen(false)} title="Grant admin access?">
+        <p className="text-sm text-charcoal">
+          {data.full_name} will get full admin access to this platform — every user's data, every dispute, every
+          transaction. Only do this for someone you trust completely; there's no way to remove admin access from
+          this UI yet.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setConfirmPromoteOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            loading={promote.isPending}
+            onClick={() => promote.mutate(id, { onSuccess: () => setConfirmPromoteOpen(false) })}
+          >
+            Confirm — make admin
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={confirmBanOpen} onClose={() => setConfirmBanOpen(false)} title="Ban this user?">
+        <p className="text-sm text-charcoal">
+          This immediately suspends {data.full_name}'s access and blocks their ID number from registering a new
+          account. Make sure the reason above is accurate before continuing.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setConfirmBanOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            loading={ban.isPending}
+            onClick={() => {
+              ban.mutate({ id, reason }, { onSuccess: () => setConfirmBanOpen(false) });
+            }}
+          >
+            Confirm ban
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

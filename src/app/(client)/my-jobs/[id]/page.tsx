@@ -40,7 +40,9 @@ export default function MyJobDetailPage({ params }: { params: { id: string } }) 
 
       <h2 className="mb-4 mt-8 font-head text-lg font-semibold text-charcoal">Proposals ({proposals.data?.length || 0})</h2>
 
-      {proposals.isLoading ? null : (proposals.data || []).length === 0 ? (
+      {proposals.isLoading ? null : proposals.isError ? (
+        <ErrorState message={proposals.error?.message} onRetry={() => proposals.refetch()} />
+      ) : (proposals.data || []).length === 0 ? (
         <EmptyState icon={Users} title="No proposals yet" description="Check back soon — proposals will show up here." />
       ) : (
         <div className="flex flex-col gap-4">

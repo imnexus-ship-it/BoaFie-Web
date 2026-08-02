@@ -57,6 +57,9 @@ export default function ClientDashboardPage() {
 
   if (isLoading) return <PageSpinner />;
   if (isError || !data) return <ErrorState message={error?.message} onRetry={() => refetch()} />;
+  if (contracts.isError) {
+    return <ErrorState message={contracts.error?.message} onRetry={() => contracts.refetch()} />;
+  }
 
   const allContracts = contracts.data?.data ?? [];
   const activeProjects = allContracts.filter((c) => c.status === 'in_progress');
@@ -246,7 +249,13 @@ export default function ClientDashboardPage() {
           </div>
           <p className="mt-1 text-xs text-white/60">Available Balance</p>
           <p className="mt-1 font-head text-2xl font-bold">
-            {wallet.data ? formatCurrency(wallet.data.balance_ghs, wallet.data.currency) : '—'}
+            {wallet.isError ? (
+              <span className="text-base font-normal text-white/60">Couldn't load balance</span>
+            ) : wallet.data ? (
+              formatCurrency(wallet.data.balance_ghs, wallet.data.currency)
+            ) : (
+              '—'
+            )}
           </p>
           <Link href="/payments" className="mt-4 block">
             <Button variant="secondary" className="w-full !bg-white !text-navy">
@@ -286,7 +295,9 @@ export default function ClientDashboardPage() {
             </Link>
           </div>
           <div className="mt-3 space-y-3">
-            {(professionals.data?.data ?? []).length === 0 && !professionals.isLoading ? (
+            {professionals.isError ? (
+              <p className="text-xs text-muted">Couldn't load professionals.</p>
+            ) : (professionals.data?.data ?? []).length === 0 && !professionals.isLoading ? (
               <p className="text-xs text-muted">No professionals to show yet.</p>
             ) : (
               (professionals.data?.data ?? []).map((p) => (
@@ -312,7 +323,9 @@ export default function ClientDashboardPage() {
             </Link>
           </div>
           <div className="mt-3 space-y-4">
-            {recentActivity.length === 0 ? (
+            {notifications.isError ? (
+              <p className="text-xs text-muted">Couldn't load recent activity.</p>
+            ) : recentActivity.length === 0 ? (
               <p className="text-xs text-muted">Nothing to show yet.</p>
             ) : (
               recentActivity.map((n) => (

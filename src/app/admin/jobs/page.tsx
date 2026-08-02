@@ -8,18 +8,23 @@ import { Card, CardBody } from '@/components/ui/Card';
 import { Select } from '@/components/ui/Select';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { Modal } from '@/components/ui/Modal';
 import { PageSpinner } from '@/components/ui/Spinner';
+import { Pagination } from '@/components/ui/Pagination';
 import { useAdminJobs, useAdminRemoveJob } from '@/lib/api/hooks/useAdmin';
 import { formatBudgetRange } from '@/lib/utils/currency';
 
 export default function AdminJobsPage() {
   const [status, setStatus] = useState('');
   const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [page, setPage] = useState(1);
   const { data, isLoading, isError, error, refetch } = useAdminJobs({
+    page,
     status: status || undefined,
     flagged: flaggedOnly || undefined,
   });
   const removeJob = useAdminRemoveJob();
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const jobs = data?.data || [];
 
@@ -28,7 +33,14 @@ export default function AdminJobsPage() {
       <h1 className="mb-6 font-head text-2xl font-bold text-charcoal">Jobs</h1>
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="max-w-[180px]">
+        <Select
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
+          className="max-w-[180px]"
+        >
           <option value="">All statuses</option>
           <option value="open">Open</option>
           <option value="in_progress">In progress</option>
@@ -37,7 +49,14 @@ export default function AdminJobsPage() {
           <option value="disputed">Disputed</option>
         </Select>
         <label className="flex items-center gap-2 text-sm text-charcoal">
-          <input type="checkbox" checked={flaggedOnly} onChange={(e) => setFlaggedOnly(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={flaggedOnly}
+            onChange={(e) => {
+              setFlaggedOnly(e.target.checked);
+              setPage(1);
+            }}
+          />
           Flagged only
         </label>
       </div>
@@ -62,7 +81,7 @@ export default function AdminJobsPage() {
                 <div className="flex shrink-0 items-center gap-2">
                   <Badge variant={job.status === 'open' ? 'green' : 'muted'}>{job.status.replace('_', ' ')}</Badge>
                   {job.status !== 'cancelled' && (
-                    <Button size="sm" variant="danger" loading={removeJob.isPending} onClick={() => removeJob.mutate(job.id)}>
+                    <Button size="sm" variant="danger" onClick={() => setConfirmingId(job.id)}>
                       Remove
                     </Button>
                   )}
@@ -72,6 +91,31 @@ export default function AdminJobsPage() {
           ))}
         </div>
       )}
+
+      {data?.meta && <Pagination page={page} limit={data.meta.limit} total={data.meta.total} onChange={setPage} />}
+
+      <Modal open={!!confirmingId} onClose={() => setConfirmingId(null)} title="Remove this job?">
+        <p className="text-sm text-charcoal">
+          This cancels the job posting — the client and any active applicants won't be able to proceed with it. This
+          can't be undone from here.
+        </p>
+        {removeJob.isError && <p className="mt-2 text-sm text-red-600">{removeJob.error.message}</p>}
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setConfirmingId(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            loading={removeJob.isPending}
+            onClick={() => {
+              if (confirmingId) removeJob.mutate(confirmingId, { onSuccess: () => setConfirmingId(null) });
+            }}
+          >
+            Confirm remove
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageSpinner } from '@/components/ui/Spinner';
+import { Pagination } from '@/components/ui/Pagination';
 import { useAdminUsers } from '@/lib/api/hooks/useAdmin';
 
 const STATUS_VARIANT: Record<string, 'green' | 'gold' | 'danger' | 'muted'> = {
@@ -20,21 +21,40 @@ const STATUS_VARIANT: Record<string, 'green' | 'gold' | 'danger' | 'muted'> = {
 export default function AdminUsersPage() {
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
-  const { data, isLoading, isError, error, refetch } = useAdminUsers({ role: role || undefined, status: status || undefined });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, error, refetch } = useAdminUsers({
+    page,
+    role: role || undefined,
+    status: status || undefined,
+  });
 
   return (
     <div>
       <h1 className="mb-6 font-head text-2xl font-bold text-charcoal">Users</h1>
 
       <div className="mb-6 flex gap-3">
-        <Select value={role} onChange={(e) => setRole(e.target.value)} className="max-w-[180px]">
+        <Select
+          value={role}
+          onChange={(e) => {
+            setRole(e.target.value);
+            setPage(1);
+          }}
+          className="max-w-[180px]"
+        >
           <option value="">All roles</option>
           <option value="client">Client</option>
           <option value="artisan">Artisan</option>
           <option value="freelancer">Freelancer</option>
           <option value="admin">Admin</option>
         </Select>
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="max-w-[180px]">
+        <Select
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
+          className="max-w-[180px]"
+        >
           <option value="">All statuses</option>
           <option value="active">Active</option>
           <option value="suspended">Suspended</option>
@@ -80,6 +100,8 @@ export default function AdminUsersPage() {
           </table>
         </Card>
       )}
+
+      {data?.meta && <Pagination page={page} limit={data.meta.limit} total={data.meta.total} onChange={setPage} />}
     </div>
   );
 }

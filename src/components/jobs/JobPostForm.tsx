@@ -39,7 +39,7 @@ export function JobPostForm() {
             urgency: form.urgency,
             is_diaspora_job: form.is_diaspora_job,
           },
-          { onSuccess: (job) => router.push(`/jobs/${job.id}`) },
+          { onSuccess: (job) => router.push(`/my-jobs/${job.id}`) },
         );
       }}
       className="flex flex-col gap-5"
@@ -47,6 +47,7 @@ export function JobPostForm() {
       <Input
         label="Job title"
         required
+        minLength={3}
         value={form.title}
         onChange={(e) => setForm({ ...form, title: e.target.value })}
         placeholder="e.g. Kitchen cabinet installation"
@@ -54,6 +55,7 @@ export function JobPostForm() {
       <Textarea
         label="Description"
         required
+        minLength={10}
         rows={5}
         value={form.description}
         onChange={(e) => setForm({ ...form, description: e.target.value })}

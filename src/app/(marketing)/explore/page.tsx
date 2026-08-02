@@ -44,7 +44,10 @@ function ExploreContent() {
         {(['artisans', 'freelancers'] as const).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => {
+              setTab(t);
+              setCategory(undefined);
+            }}
             className={`flex-1 rounded-lg py-2 text-sm font-medium capitalize transition-colors ${
               tab === t ? 'bg-green text-white' : 'text-muted'
             }`}

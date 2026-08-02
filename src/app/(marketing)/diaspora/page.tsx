@@ -4,7 +4,7 @@ import { Button } from '@/components/ui';
 
 const FEATURES = [
   { icon: ShieldCheck, title: 'Verified before you hire', body: 'Every worker passes ID, selfie, location, and trade-cert checks — not just a profile photo.' },
-  { icon: Wallet, title: 'Pay in your currency', body: 'Fund escrow in GBP, USD, EUR, or CAD via Stripe. Funds convert and release in GHS to the worker.' },
+  { icon: Wallet, title: 'Secure escrow, released on your terms', body: 'Funds are held safely in escrow and only released to the worker once you confirm the milestone is done right.' },
   { icon: Camera, title: 'See real progress', body: 'Milestone photos and videos let you follow the job from thousands of miles away.' },
 ];
 

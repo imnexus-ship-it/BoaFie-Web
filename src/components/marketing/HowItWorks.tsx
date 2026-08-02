@@ -7,7 +7,7 @@ const STEPS = [
     n: 1,
     icon: Search,
     title: 'Find & Choose',
-    body: 'Search for verified professionals and compare reviews, ratings, and prices.',
+    body: 'Search for verified professionals and compare experience, completed jobs, and prices.',
   },
   {
     n: 2,

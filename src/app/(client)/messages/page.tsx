@@ -1,15 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { MessageSquare } from 'lucide-react';
-import { Avatar } from '@/components/ui/Avatar';
-import { Card, CardBody } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageSpinner } from '@/components/ui/Spinner';
+import { ConversationRow } from '@/components/messaging/ConversationRow';
 import { useConversations } from '@/lib/api/hooks/useMessaging';
 import { useAuthStore } from '@/lib/store/auth-store';
-import { timeAgo } from '@/lib/utils/date';
 
 export default function ClientMessagesPage() {
   const { data, isLoading, isError, error, refetch } = useConversations();
@@ -26,22 +23,9 @@ export default function ClientMessagesPage() {
         <EmptyState icon={MessageSquare} title="No conversations yet" description="Messages with workers will appear here." />
       ) : (
         <div className="flex flex-col gap-2">
-          {(data || []).map((c) => {
-            const otherParticipant = c.participant_ids.find((id) => id !== currentUserId) || 'Conversation';
-            return (
-              <Link key={c.id} href={`/messages/${c.id}`}>
-                <Card className="transition-shadow hover:shadow-md">
-                  <CardBody className="flex items-center gap-3">
-                    <Avatar name={otherParticipant} size={40} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-charcoal">Conversation</p>
-                      {c.last_message_at && <p className="text-xs text-muted">{timeAgo(c.last_message_at)}</p>}
-                    </div>
-                  </CardBody>
-                </Card>
-              </Link>
-            );
-          })}
+          {(data || []).map((c) => (
+            <ConversationRow key={c.id} conversation={c} currentUserId={currentUserId} linkBase="/messages" />
+          ))}
         </div>
       )}
     </div>

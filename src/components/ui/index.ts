@@ -12,3 +12,4 @@ export * from './ProgressBar';
 export * from './EmptyState';
 export * from './ErrorState';
 export * from './Modal';
+export * from './Pagination';

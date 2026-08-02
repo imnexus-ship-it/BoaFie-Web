@@ -59,12 +59,28 @@ export function useAdminReinstateUser() {
   });
 }
 
+export function useAdminPromoteToAdmin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.patch(`/admin/users/${id}/promote`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  });
+}
+
+export interface AdminVerification extends Verification {
+  users: Pick<User, 'id' | 'full_name' | 'email' | 'role'>;
+  id_type?: string | null;
+  id_number?: string | null;
+  id_front_url?: string | null;
+  id_back_url?: string | null;
+  selfie_url?: string | null;
+  trade_cert_url?: string | null;
+}
+
 export function useAdminPendingVerifications(page = 1) {
   return useQuery({
     queryKey: ['admin', 'verifications', page],
-    queryFn: () => api.getPaginated<(Verification & { users: Pick<User, 'id' | 'full_name' | 'email' | 'role'> })[]>(
-      `/admin/verifications?page=${page}`,
-    ),
+    queryFn: () => api.getPaginated<AdminVerification[]>(`/admin/verifications?page=${page}`),
     placeholderData: (prev) => prev,
   });
 }
@@ -152,7 +168,7 @@ export function useAdminAuditLog(page = 1) {
   });
 }
 
-interface AdminDispute {
+export interface AdminDispute {
   id: string;
   contract_id: string;
   raised_by: string;
@@ -160,8 +176,11 @@ interface AdminDispute {
   reason: string;
   description: string;
   status: string;
+  resolution_note?: string | null;
   created_at: string;
   contract?: { id: string; title: string };
+  raised_by_user?: { id: string; full_name: string };
+  against_user_user?: { id: string; full_name: string };
 }
 
 export function useAdminDisputes(page = 1) {

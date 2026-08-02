@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Camera, FileBadge, MapPin, ShieldCheck, UserSquare2 } from 'lucide-react';
+import { Camera, FileBadge, MapPin, Phone, ShieldCheck, UserSquare2 } from 'lucide-react';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { PageSpinner } from '@/components/ui/Spinner';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { VerificationStatusBadge } from '@/components/verification/VerificationBadge';
+import { PhoneVerification } from '@/components/verification/PhoneVerification';
 import { useVerificationStatus } from '@/lib/api/hooks/useVerification';
 import {
   useSubmitId,
@@ -18,6 +20,7 @@ import {
 } from '@/lib/api/hooks/useVerification';
 
 const STEPS = [
+  { key: 'phone_status', label: 'Phone number', icon: Phone },
   { key: 'id_status', label: 'Government ID', icon: UserSquare2 },
   { key: 'selfie_status', label: 'Selfie verification', icon: Camera },
   { key: 'location_status', label: 'Location confirmation', icon: MapPin },
@@ -29,6 +32,10 @@ function StepBadge({ status }: { status: string }) {
   if (status === 'pending') return <span className="text-xs font-semibold text-gold">Pending review</span>;
   if (status === 'rejected') return <span className="text-xs font-semibold text-red-600">Rejected — resubmit</span>;
   return <span className="text-xs text-muted">Not submitted</span>;
+}
+
+function PhoneStep() {
+  return <PhoneVerification />;
 }
 
 function IdStep() {
@@ -136,6 +143,7 @@ function TradeCertStep() {
 }
 
 const STEP_FORMS: Record<string, React.ComponentType> = {
+  phone_status: PhoneStep,
   id_status: IdStep,
   selfie_status: SelfieStep,
   location_status: LocationStep,
@@ -143,10 +151,11 @@ const STEP_FORMS: Record<string, React.ComponentType> = {
 };
 
 export default function VerificationPage() {
-  const { data, isLoading } = useVerificationStatus();
+  const { data, isLoading, isError, error, refetch } = useVerificationStatus();
   const [expanded, setExpanded] = useState<string | null>(null);
 
   if (isLoading) return <PageSpinner />;
+  if (isError) return <ErrorState message={error?.message} onRetry={() => refetch()} />;
 
   const statuses = data || ({} as any);
   const completedCount = STEPS.filter((s) => statuses[s.key] === 'verified').length;

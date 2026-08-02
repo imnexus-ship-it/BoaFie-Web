@@ -1,15 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { ScrollText } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageSpinner } from '@/components/ui/Spinner';
+import { Pagination } from '@/components/ui/Pagination';
 import { useAdminAuditLog } from '@/lib/api/hooks/useAdmin';
 import { timeAgo } from '@/lib/utils/date';
 
 export default function AdminAuditLogPage() {
-  const { data, isLoading, isError, error, refetch } = useAdminAuditLog();
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, error, refetch } = useAdminAuditLog(page);
   const entries = data?.data || [];
 
   return (
@@ -40,6 +43,8 @@ export default function AdminAuditLogPage() {
           </div>
         </Card>
       )}
+
+      {data?.meta && <Pagination page={page} limit={data.meta.limit} total={data.meta.total} onChange={setPage} />}
     </div>
   );
 }

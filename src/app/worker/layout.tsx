@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   MessageSquare,
   Settings,
+  UserCog,
   Image as ImageIcon,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
@@ -25,6 +26,7 @@ const LINKS = [
   { href: '/worker/earnings', label: 'Earnings', icon: Wallet },
   { href: '/worker/verification', label: 'Verification', icon: ShieldCheck },
   { href: '/worker/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/worker/profile', label: 'Work profile', icon: UserCog },
   { href: '/worker/settings', label: 'Settings', icon: Settings },
 ];
 

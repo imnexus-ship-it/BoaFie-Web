@@ -1,8 +1,17 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../client';
 import { Wallet } from '../types';
+
+export type WithdrawMethod = 'mtn_momo' | 'telecel_cash' | 'airteltigo' | 'bank_transfer';
+
+export interface WithdrawInput {
+  amount_ghs: number;
+  method: WithdrawMethod;
+  account_number: string;
+  account_name: string;
+}
 
 export interface Transaction {
   id: string;
@@ -30,5 +39,15 @@ export function useWalletTransactions() {
     queryKey: ['wallet', 'transactions'],
     queryFn: () => api.getPaginated<Transaction[]>('/wallet/transactions'),
     retry: false,
+  });
+}
+
+export function useWithdraw() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: WithdrawInput) => api.post<Transaction>('/wallet/withdraw', body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
+    },
   });
 }

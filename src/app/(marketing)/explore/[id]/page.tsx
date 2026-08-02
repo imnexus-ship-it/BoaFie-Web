@@ -58,6 +58,7 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
   const isArtisan = !!artisan.data;
   const name = worker.users?.full_name || 'BoaFie worker';
   const heading = isArtisan ? (worker as any).trade_category : (worker as any).title;
+  const verified = worker.users?.status === 'active';
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-8">
@@ -67,7 +68,7 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-head text-xl font-bold text-charcoal">{name}</h1>
-              <Badge variant="green">Verified</Badge>
+              {verified && <Badge variant="green">Verified</Badge>}
             </div>
             <p className="mt-1 capitalize text-muted">{heading}</p>
             <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted">

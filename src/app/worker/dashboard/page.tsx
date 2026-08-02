@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, Wallet, CheckCircle2, ShieldCheck, Search, MapPin, ArrowRight, Briefcase } from 'lucide-react';
+import { Send, Wallet, CheckCircle2, ShieldCheck, Search, MapPin, ArrowRight, Briefcase, Sparkles, X } from 'lucide-react';
 import { StatsGrid } from '@/components/admin/StatsGrid';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
@@ -11,6 +11,8 @@ import { Avatar } from '@/components/ui/Avatar';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Modal } from '@/components/ui/Modal';
+import { PhoneVerification } from '@/components/verification/PhoneVerification';
 import { useDashboard } from '@/lib/api/hooks/useDashboard';
 import { useContracts } from '@/lib/api/hooks/useContracts';
 import { useWallet } from '@/lib/api/hooks/useWallet';
@@ -21,6 +23,8 @@ import { useNotifications } from '@/lib/api/hooks/useNotifications';
 import { formatCurrency, formatBudgetRange } from '@/lib/utils/currency';
 import { timeAgo } from '@/lib/utils/date';
 import { Contract } from '@/lib/api/types';
+import { getPlan, PENDING_PLAN_STORAGE_KEY } from '@/lib/constants/plans';
+import { JUST_SIGNED_UP_KEY } from '@/lib/api/hooks/useAuth';
 
 const STATUS_BADGE: Record<string, { variant: 'green' | 'gold' | 'danger' | 'muted'; label: string }> = {
   in_progress: { variant: 'gold', label: 'In Progress' },
@@ -45,9 +49,37 @@ export default function WorkerDashboardPage() {
 
   const [category, setCategory] = useState('');
   const [location, setLocation] = useState('Accra, Ghana');
+  const [pendingPlan, setPendingPlan] = useState<ReturnType<typeof getPlan>>(undefined);
+  const [showPhonePrompt, setShowPhonePrompt] = useState(false);
+
+  useEffect(() => {
+    const raw = localStorage.getItem(PENDING_PLAN_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const { slug } = JSON.parse(raw) as { slug: string };
+      setPendingPlan(getPlan(slug));
+    } catch {
+      localStorage.removeItem(PENDING_PLAN_STORAGE_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(JUST_SIGNED_UP_KEY)) {
+      sessionStorage.removeItem(JUST_SIGNED_UP_KEY);
+      setShowPhonePrompt(true);
+    }
+  }, []);
+
+  const dismissPendingPlan = () => {
+    localStorage.removeItem(PENDING_PLAN_STORAGE_KEY);
+    setPendingPlan(undefined);
+  };
 
   if (isLoading) return <PageSpinner />;
   if (isError || !data) return <ErrorState message={error?.message} onRetry={() => refetch()} />;
+  if (contracts.isError) {
+    return <ErrorState message={contracts.error?.message} onRetry={() => contracts.refetch()} />;
+  }
 
   const allContracts = contracts.data?.data ?? [];
   const activeContracts = allContracts.filter((c) => c.status === 'in_progress');
@@ -56,13 +88,39 @@ export default function WorkerDashboardPage() {
   const recentActivity = notifications.data?.data.slice(0, 5) ?? [];
 
   const verificationStages = verification.data
-    ? [verification.data.id_status, verification.data.selfie_status, verification.data.location_status, verification.data.trade_cert_status]
+    ? [
+        verification.data.phone_status,
+        verification.data.id_status,
+        verification.data.selfie_status,
+        verification.data.location_status,
+        verification.data.trade_cert_status,
+      ]
     : [];
   const verifiedCount = verificationStages.filter((s) => s === 'verified').length;
 
   return (
     <div className="mx-auto flex max-w-7xl gap-6">
       <div className="min-w-0 flex-1 space-y-6">
+        {pendingPlan && (
+          <div className="flex items-center gap-3 rounded-lg border border-gold/30 bg-gold-3 p-4">
+            <Sparkles className="h-5 w-5 shrink-0 text-gold" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-charcoal">
+                You selected <span className="font-semibold">{pendingPlan.name}</span> ({pendingPlan.price}
+                {pendingPlan.priceSuffix}) at signup.
+              </p>
+              <p className="text-xs text-muted">Upgrades aren't live yet — we'll email you as soon as you can switch to it.</p>
+            </div>
+            <button
+              onClick={dismissPendingPlan}
+              aria-label="Dismiss"
+              className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-black/5"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         {/* Hero */}
         <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-navy to-green p-8 text-white">
           <div className="relative z-10 max-w-lg">
@@ -76,7 +134,10 @@ export default function WorkerDashboardPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                router.push(`/worker/find-jobs?category=${encodeURIComponent(category)}&location=${encodeURIComponent(location)}`);
+                const params = new URLSearchParams();
+                if (category.trim()) params.set('category', category.trim().toLowerCase());
+                if (location.trim()) params.set('location', location.trim());
+                router.push(`/worker/find-jobs?${params.toString()}`);
               }}
               className="mt-6 flex flex-col gap-2 rounded-lg bg-white p-2 sm:flex-row"
             >
@@ -222,7 +283,13 @@ export default function WorkerDashboardPage() {
           </div>
           <p className="mt-1 text-xs text-white/60">Available Balance</p>
           <p className="mt-1 font-head text-2xl font-bold">
-            {wallet.data ? formatCurrency(wallet.data.balance_ghs, wallet.data.currency) : '—'}
+            {wallet.isError ? (
+              <span className="text-base font-normal text-white/60">Couldn't load balance</span>
+            ) : wallet.data ? (
+              formatCurrency(wallet.data.balance_ghs, wallet.data.currency)
+            ) : (
+              '—'
+            )}
           </p>
           <p className="mt-2 text-xs text-white/60">
             Lifetime earned: {wallet.data ? formatCurrency(wallet.data.lifetime_earned, wallet.data.currency) : '—'}
@@ -242,9 +309,11 @@ export default function WorkerDashboardPage() {
           {verification.data ? (
             <>
               <div className="mt-3 h-2 w-full overflow-hidden rounded-pill bg-border">
-                <div className="h-full bg-green" style={{ width: `${(verifiedCount / 4) * 100}%` }} />
+                <div className="h-full bg-green" style={{ width: `${(verifiedCount / verificationStages.length) * 100}%` }} />
               </div>
-              <p className="mt-2 text-xs text-muted">{verifiedCount} of 4 checks complete</p>
+              <p className="mt-2 text-xs text-muted">
+                {verifiedCount} of {verificationStages.length} checks complete
+              </p>
               {!verification.data.overall_verified && (
                 <Link href="/worker/verification" className="mt-3 block text-xs font-medium text-green hover:underline">
                   Complete verification →
@@ -264,7 +333,9 @@ export default function WorkerDashboardPage() {
             </Link>
           </div>
           <div className="mt-3 space-y-3">
-            {(recommended.data ?? []).length === 0 && !recommended.isLoading ? (
+            {recommended.isError ? (
+              <p className="text-xs text-muted">Couldn't load recommendations.</p>
+            ) : (recommended.data ?? []).length === 0 && !recommended.isLoading ? (
               <p className="text-xs text-muted">No recommendations yet — complete your profile to get matched.</p>
             ) : (
               (recommended.data ?? []).slice(0, 4).map((job) => (
@@ -287,7 +358,9 @@ export default function WorkerDashboardPage() {
             </Link>
           </div>
           <div className="mt-3 space-y-4">
-            {recentActivity.length === 0 ? (
+            {notifications.isError ? (
+              <p className="text-xs text-muted">Couldn't load recent activity.</p>
+            ) : recentActivity.length === 0 ? (
               <p className="text-xs text-muted">Nothing to show yet.</p>
             ) : (
               recentActivity.map((n) => (
@@ -303,6 +376,25 @@ export default function WorkerDashboardPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={showPhonePrompt && verification.data?.phone_status !== 'verified'}
+        onClose={() => setShowPhonePrompt(false)}
+        title="Verify your phone number"
+      >
+        <p className="mb-4 text-sm text-muted">
+          You'll need this before you can withdraw your earnings. Takes a minute — or skip it for now and do it later
+          from Verification.
+        </p>
+        <PhoneVerification onVerified={() => setShowPhonePrompt(false)} />
+        <button
+          type="button"
+          onClick={() => setShowPhonePrompt(false)}
+          className="mt-4 text-sm font-medium text-muted hover:text-charcoal"
+        >
+          Skip for now
+        </button>
+      </Modal>
     </div>
   );
 }
