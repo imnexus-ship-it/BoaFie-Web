@@ -21,8 +21,10 @@ const config: Config = {
         info: '#2563EB',
       },
       fontFamily: {
-        head: ['var(--font-sora)', 'sans-serif'],
-        body: ['var(--font-dmsans)', 'sans-serif'],
+        // One rounded geometric family (Manrope) for both — weight utility
+        // classes (font-semibold, font-bold, etc.) do the differentiating.
+        head: ['var(--font-manrope)', 'sans-serif'],
+        body: ['var(--font-manrope)', 'sans-serif'],
       },
       borderRadius: {
         DEFAULT: '12px',
