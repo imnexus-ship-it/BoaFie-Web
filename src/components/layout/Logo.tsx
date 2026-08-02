@@ -15,12 +15,11 @@ export function Logo({
   showTagline?: boolean;
   className?: string;
 }) {
-  const badgeSize = size === 'lg' ? 'h-11 w-11' : size === 'sm' ? 'h-7 w-7' : 'h-9 w-9';
   const wordmarkSize = size === 'lg' ? 'text-2xl' : size === 'sm' ? 'text-base' : 'text-lg';
 
   const content = (
     <div className={cn('flex items-center gap-2', className)}>
-      <LogoMark className={badgeSize} />
+      <LogoMark size={size} />
       <div>
         <span className={cn('font-head font-bold', wordmarkSize, light ? 'text-white' : 'text-green')}>BoaFie</span>
         {showTagline && (
