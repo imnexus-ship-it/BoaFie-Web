@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown, Globe, Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { cn } from '@/lib/utils/cn';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { dashboardPathForRole } from '@/lib/utils/routing';
@@ -72,10 +73,7 @@ export function HomeHeader() {
         </nav>
 
         <div className="hidden items-center gap-4 lg:flex">
-          <span className="flex items-center gap-1 text-sm font-medium text-white/70">
-            <Globe className="h-4 w-4" />
-            EN
-          </span>
+          <LanguageSwitcher variant="dark" />
           {user ? (
             <>
               <Link href={dashboardHref} className="flex items-center gap-2 text-sm font-medium text-white hover:text-white/80">
@@ -126,6 +124,7 @@ export function HomeHeader() {
           <Link href="/about" className="text-sm font-medium text-white" onClick={() => setMobileOpen(false)}>
             About Us
           </Link>
+          <LanguageSwitcher variant="dark" />
           {user ? (
             <div className="mt-2 flex items-center gap-3">
               <Link

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/lib/store/auth-store';
 import { Button } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { Logo } from './Logo';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { dashboardPathForRole } from '@/lib/utils/routing';
 
 const LINKS = [
@@ -35,7 +36,8 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-4 md:flex">
+          <LanguageSwitcher />
           {user ? (
             <>
               <Link href={dashboardHref} className="flex items-center gap-2 text-sm font-medium text-charcoal hover:text-green">
@@ -73,6 +75,9 @@ export function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <div className="mt-1">
+              <LanguageSwitcher />
+            </div>
             <div className="mt-2 flex gap-2">
               {user ? (
                 <Button variant="secondary" size="sm" onClick={clearSession} className="w-full">

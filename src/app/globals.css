@@ -26,3 +26,16 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Google Website Translator is driven headlessly by LanguageSwitcher —
+   hide its own gadget UI and the top "translated by Google" banner.
+   Its iframes carry auto-generated, unstable class names, but all of
+   them (banner, tooltip, balloon) are consistently marked skiptranslate. */
+iframe.skiptranslate,
+#goog-gt-tt,
+.goog-tooltip {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
