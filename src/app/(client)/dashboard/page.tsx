@@ -10,9 +10,11 @@ import {
   CircleDollarSign,
   ShieldCheck,
   Search,
+  Plus,
+  UserSearch,
   MapPin,
   ArrowRight,
-  Star,
+  Gift,
 } from 'lucide-react';
 import { StatsGrid } from '@/components/admin/StatsGrid';
 import { Button } from '@/components/ui';
@@ -68,19 +70,33 @@ export default function ClientDashboardPage() {
   const totalSpent = completedProjects.reduce((sum, c) => sum + Number(c.agreed_amount), 0);
 
   const recentActivity = notifications.data?.data.slice(0, 5) ?? [];
+  const firstName = authUser?.full_name?.split(' ')[0];
 
   return (
     <div className="mx-auto flex max-w-7xl gap-6">
       <div className="min-w-0 flex-1 space-y-6">
-        {/* Hero */}
-        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-navy to-green p-8 text-white">
+        {/* Hero — hiring action hub, not a search page */}
+        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-navy to-navy/80 p-8 text-white">
           <div className="relative z-10 max-w-lg">
             <h1 className="font-head text-3xl font-bold leading-tight">
-              Find trusted professionals.
+              Welcome back{firstName ? `, ${firstName}` : ''}.
               <br />
-              <span className="text-gold-2">Get work done right.</span>
+              <span className="text-gold-2">What do you need done?</span>
             </h1>
-            <p className="mt-3 text-sm text-white/80">Verified experts. Secure payments. Quality work. Real results.</p>
+            <p className="mt-3 text-sm text-white/80">Post a job or browse verified professionals ready to start.</p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/post-job">
+                <Button size="lg" className="!bg-gold hover:!bg-gold-2">
+                  <Plus className="h-4 w-4" /> Post a Job
+                </Button>
+              </Link>
+              <Link href="/explore">
+                <Button size="lg" variant="outline" className="!border-white/30 !text-white hover:!bg-white/10">
+                  <UserSearch className="h-4 w-4" /> Browse Professionals
+                </Button>
+              </Link>
+            </div>
 
             <form
               onSubmit={(e) => {
@@ -90,48 +106,45 @@ export default function ClientDashboardPage() {
                 if (location.trim()) params.set('location', location.trim());
                 router.push(`/explore?${params.toString()}`);
               }}
-              className="mt-6 flex flex-col gap-2 rounded-lg bg-white p-2 sm:flex-row"
+              className="mt-5 flex flex-col gap-2 rounded-lg bg-white/10 p-2 sm:flex-row"
             >
               <div className="flex flex-1 items-center gap-2 rounded-lg px-3 py-2">
-                <Search className="h-4 w-4 shrink-0 text-muted" />
+                <Search className="h-4 w-4 shrink-0 text-white/60" />
                 <input
                   value={service}
                   onChange={(e) => setService(e.target.value)}
-                  placeholder="e.g. Plumbing, Electrical…"
-                  className="w-full text-sm text-charcoal placeholder:text-muted focus:outline-none"
+                  placeholder="Or quick-search, e.g. Plumbing…"
+                  className="w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
                 />
               </div>
-              <div className="flex flex-1 items-center gap-2 rounded-lg border-t border-border px-3 py-2 sm:border-l sm:border-t-0">
-                <MapPin className="h-4 w-4 shrink-0 text-muted" />
+              <div className="flex flex-1 items-center gap-2 rounded-lg border-t border-white/10 px-3 py-2 sm:border-l sm:border-t-0">
+                <MapPin className="h-4 w-4 shrink-0 text-white/60" />
                 <input
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full text-sm text-charcoal placeholder:text-muted focus:outline-none"
+                  className="w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
                 />
               </div>
-              <Button type="submit" className="shrink-0">
-                Search Now <ArrowRight className="h-4 w-4" />
+              <Button type="submit" variant="secondary" className="shrink-0 !bg-white !text-navy">
+                Search <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
           </div>
-          <div className="pointer-events-none absolute -right-6 top-1/2 hidden h-48 w-48 -translate-y-1/2 items-center justify-center rounded-2xl bg-white/10 font-head text-8xl font-bold text-white/10 sm:flex">
-            B
-          </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats — action/risk framed for a hirer, not passive counts */}
         <StatsGrid
           stats={[
             {
-              label: 'Active Projects',
+              label: 'Needs Review',
               value: activeProjects.length,
               icon: Briefcase,
-              iconBg: 'bg-green-3',
-              iconColor: 'text-green',
+              iconBg: 'bg-gold-3',
+              iconColor: 'text-gold',
               href: '/contracts',
             },
             {
-              label: 'In Escrow',
+              label: 'Held in Escrow',
               value: formatCurrency(totalInEscrow),
               icon: CircleDollarSign,
               iconBg: 'bg-gold-3',
@@ -139,7 +152,7 @@ export default function ClientDashboardPage() {
               href: '/payments',
             },
             {
-              label: 'Completed Jobs',
+              label: 'Completed',
               value: completedProjects.length,
               icon: CheckCircle2,
               iconBg: 'bg-green-3',
@@ -147,7 +160,7 @@ export default function ClientDashboardPage() {
               href: '/contracts',
             },
             {
-              label: 'Total Spent',
+              label: 'Total Invested',
               value: formatCurrency(totalSpent),
               icon: Wallet,
               iconBg: 'bg-navy/10',
@@ -157,10 +170,10 @@ export default function ClientDashboardPage() {
           ]}
         />
 
-        {/* Active Projects */}
+        {/* Your hires */}
         <div className="rounded-lg border border-border bg-white">
           <div className="flex items-center justify-between border-b border-border p-5">
-            <h2 className="font-head text-base font-semibold text-charcoal">Active Projects</h2>
+            <h2 className="font-head text-base font-semibold text-charcoal">Your Hires</h2>
             <Link href="/contracts" className="text-sm font-medium text-green hover:underline">
               View all
             </Link>
@@ -170,11 +183,11 @@ export default function ClientDashboardPage() {
             <div className="p-5">
               <EmptyState
                 icon={Briefcase}
-                title="No active projects"
-                description="Hire a professional to see your active projects here."
+                title="No active hires yet"
+                description="Post a job or browse professionals to get started."
                 action={
-                  <Link href="/explore">
-                    <Button>Find professionals</Button>
+                  <Link href="/post-job">
+                    <Button>Post a job</Button>
                   </Link>
                 }
               />
@@ -190,8 +203,8 @@ export default function ClientDashboardPage() {
                     href={`/contracts/${c.id}`}
                     className="flex items-center gap-4 p-5 transition-colors hover:bg-cream"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-3">
-                      <Briefcase className="h-5 w-5 text-green" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-3">
+                      <Briefcase className="h-5 w-5 text-gold" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-head text-sm font-semibold text-charcoal">{c.title}</p>
@@ -208,41 +221,26 @@ export default function ClientDashboardPage() {
             </div>
           )}
 
-          <div className="flex items-center gap-3 border-t border-border bg-green-3/40 p-5">
-            <ShieldCheck className="h-8 w-8 shrink-0 text-green" />
+          <div className="flex items-center gap-3 border-t border-border bg-gold-3/60 p-5">
+            <ShieldCheck className="h-8 w-8 shrink-0 text-gold" />
             <div className="min-w-0 flex-1">
-              <p className="font-head text-sm font-semibold text-charcoal">Your payments are protected with BoaFie Escrow</p>
-              <p className="text-xs text-muted">We hold your payment securely and release it only when you're satisfied with the work.</p>
+              <p className="font-head text-sm font-semibold text-charcoal">Your money stays protected</p>
+              <p className="text-xs text-muted">Funds are held in escrow and only released once you approve the work.</p>
             </div>
             <Link href="/payments" className="shrink-0 text-sm font-medium text-green hover:underline">
               Learn more →
             </Link>
           </div>
         </div>
-
-        {/* Trust bar */}
-        <div className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-white p-5 sm:grid-cols-4">
-          {[
-            { icon: ShieldCheck, label: 'Verified Professionals', hint: 'Background checked & verified' },
-            { icon: CircleDollarSign, label: 'Secure Payments', hint: 'Escrow protection for every job' },
-            { icon: Star, label: 'Quality Guaranteed', hint: 'Satisfaction or your money back' },
-          ].map((t) => (
-            <div key={t.label} className="flex items-center gap-2">
-              <t.icon className="h-4 w-4 shrink-0 text-green" />
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-charcoal">{t.label}</p>
-                <p className="truncate text-[11px] text-muted">{t.hint}</p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Right column */}
       <div className="hidden w-80 shrink-0 space-y-6 xl:block">
-        <div className="rounded-lg bg-gradient-to-br from-navy to-green p-5 text-white">
+        <div className="rounded-lg bg-gradient-to-br from-navy to-navy/80 p-5 text-white">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white/80">My Wallet</span>
+            <span className="flex items-center gap-1.5 text-sm font-medium text-white/80">
+              <Gift className="h-3.5 w-3.5" /> Wallet & Refunds
+            </span>
             <Link href="/payments" className="text-xs font-medium text-gold-2 hover:underline">
               View all
             </Link>
@@ -265,31 +263,8 @@ export default function ClientDashboardPage() {
         </div>
 
         <div className="rounded-lg border border-border bg-white p-5">
-          <p className="text-sm font-semibold text-charcoal">Account Summary</p>
-          <p className="mt-1 text-xs text-muted">
-            {authUser?.full_name?.split(' ')[0]}
-            {me.data?.created_at &&
-              `, member since ${new Date(me.data.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`}
-          </p>
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-            <div>
-              <p className="font-head text-lg font-bold text-charcoal">{data.active_jobs ?? 0}</p>
-              <p className="text-[11px] text-muted">Jobs Posted</p>
-            </div>
-            <div>
-              <p className="font-head text-lg font-bold text-charcoal">{completedProjects.length}</p>
-              <p className="text-[11px] text-muted">Completed</p>
-            </div>
-            <div>
-              <p className="font-head text-lg font-bold text-charcoal">{activeProjects.length}</p>
-              <p className="text-[11px] text-muted">In Progress</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-white p-5">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-charcoal">Available Professionals</p>
+            <p className="text-sm font-semibold text-charcoal">Browse Professionals</p>
             <Link href="/explore" className="text-xs font-medium text-green hover:underline">
               View all
             </Link>
@@ -312,6 +287,29 @@ export default function ClientDashboardPage() {
                 </Link>
               ))
             )}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-white p-5">
+          <p className="text-sm font-semibold text-charcoal">Account Summary</p>
+          <p className="mt-1 text-xs text-muted">
+            {firstName}
+            {me.data?.created_at &&
+              `, member since ${new Date(me.data.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`}
+          </p>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="font-head text-lg font-bold text-charcoal">{data.active_jobs ?? 0}</p>
+              <p className="text-[11px] text-muted">Jobs Posted</p>
+            </div>
+            <div>
+              <p className="font-head text-lg font-bold text-charcoal">{completedProjects.length}</p>
+              <p className="text-[11px] text-muted">Completed</p>
+            </div>
+            <div>
+              <p className="font-head text-lg font-bold text-charcoal">{activeProjects.length}</p>
+              <p className="text-[11px] text-muted">In Progress</p>
+            </div>
           </div>
         </div>
 

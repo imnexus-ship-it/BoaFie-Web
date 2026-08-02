@@ -168,40 +168,40 @@ export default function WorkerDashboardPage() {
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats — earning/funnel framed for a worker, not passive counts */}
         <StatsGrid
           stats={[
             {
-              label: 'Active Proposals',
-              value: pendingProposals.length,
-              icon: Send,
+              label: 'Ready to Withdraw',
+              value: wallet.data ? formatCurrency(wallet.data.balance_ghs) : '—',
+              icon: Wallet,
               iconBg: 'bg-green-3',
               iconColor: 'text-green',
+              href: '/worker/earnings',
+            },
+            {
+              label: 'Awaiting Response',
+              value: pendingProposals.length,
+              icon: Send,
+              iconBg: 'bg-gold-3',
+              iconColor: 'text-gold',
               href: '/worker/proposals',
             },
             {
               label: 'Active Contracts',
               value: activeContracts.length,
               icon: Briefcase,
-              iconBg: 'bg-gold-3',
-              iconColor: 'text-gold',
+              iconBg: 'bg-green-3',
+              iconColor: 'text-green',
               href: '/worker/contracts',
             },
             {
               label: 'Completed Jobs',
               value: completedContracts.length,
               icon: CheckCircle2,
-              iconBg: 'bg-green-3',
-              iconColor: 'text-success',
-              href: '/worker/contracts',
-            },
-            {
-              label: 'Wallet Balance',
-              value: wallet.data ? formatCurrency(wallet.data.balance_ghs) : '—',
-              icon: Wallet,
               iconBg: 'bg-navy/10',
               iconColor: 'text-navy',
-              href: '/worker/earnings',
+              href: '/worker/contracts',
             },
           ]}
         />
@@ -274,56 +274,83 @@ export default function WorkerDashboardPage() {
 
       {/* Right column */}
       <div className="hidden w-80 shrink-0 space-y-6 xl:block">
-        <div className="rounded-lg bg-gradient-to-br from-navy to-green p-5 text-white">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-white/80">My Earnings</span>
-            <Link href="/worker/earnings" className="text-xs font-medium text-gold-2 hover:underline">
-              View all
-            </Link>
-          </div>
-          <p className="mt-1 text-xs text-white/60">Available Balance</p>
-          <p className="mt-1 font-head text-2xl font-bold">
-            {wallet.isError ? (
-              <span className="text-base font-normal text-white/60">Couldn't load balance</span>
-            ) : wallet.data ? (
-              formatCurrency(wallet.data.balance_ghs, wallet.data.currency)
-            ) : (
-              '—'
-            )}
-          </p>
-          <p className="mt-2 text-xs text-white/60">
-            Lifetime earned: {wallet.data ? formatCurrency(wallet.data.lifetime_earned, wallet.data.currency) : '—'}
-          </p>
-          <Link href="/worker/earnings" className="mt-4 block">
-            <Button variant="secondary" className="w-full !bg-white !text-navy">
-              View Earnings
-            </Button>
-          </Link>
-        </div>
+        {(() => {
+          const incomplete = verification.data && !verification.data.overall_verified;
 
-        <div className="rounded-lg border border-border bg-white p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-charcoal">Verification Status</p>
-            {verification.data?.overall_verified && <Badge variant="green">Verified</Badge>}
-          </div>
-          {verification.data ? (
-            <>
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-pill bg-border">
-                <div className="h-full bg-green" style={{ width: `${(verifiedCount / verificationStages.length) * 100}%` }} />
-              </div>
-              <p className="mt-2 text-xs text-muted">
-                {verifiedCount} of {verificationStages.length} checks complete
-              </p>
-              {!verification.data.overall_verified && (
-                <Link href="/worker/verification" className="mt-3 block text-xs font-medium text-green hover:underline">
-                  Complete verification →
+          const earningsCard = (
+            <div key="earnings" className="rounded-lg bg-gradient-to-br from-navy to-green p-5 text-white">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-white/80">My Earnings</span>
+                <Link href="/worker/earnings" className="text-xs font-medium text-gold-2 hover:underline">
+                  View all
                 </Link>
+              </div>
+              <p className="mt-1 text-xs text-white/60">Available Balance</p>
+              <p className="mt-1 font-head text-2xl font-bold">
+                {wallet.isError ? (
+                  <span className="text-base font-normal text-white/60">Couldn't load balance</span>
+                ) : wallet.data ? (
+                  formatCurrency(wallet.data.balance_ghs, wallet.data.currency)
+                ) : (
+                  '—'
+                )}
+              </p>
+              <p className="mt-2 text-xs text-white/60">
+                Lifetime earned: {wallet.data ? formatCurrency(wallet.data.lifetime_earned, wallet.data.currency) : '—'}
+              </p>
+              <Link href="/worker/earnings" className="mt-4 block">
+                <Button variant="secondary" className="w-full !bg-white !text-navy">
+                  View Earnings
+                </Button>
+              </Link>
+            </div>
+          );
+
+          const verificationCard = (
+            <div
+              key="verification"
+              className={
+                incomplete
+                  ? 'rounded-lg border-2 border-gold bg-gold-3 p-5'
+                  : 'rounded-lg border border-border bg-white p-5'
+              }
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-charcoal">Verification Status</p>
+                {verification.data?.overall_verified && <Badge variant="green">Verified</Badge>}
+              </div>
+              {verification.data ? (
+                <>
+                  <div className="mt-3 h-2 w-full overflow-hidden rounded-pill bg-border">
+                    <div
+                      className={incomplete ? 'h-full bg-gold' : 'h-full bg-green'}
+                      style={{ width: `${(verifiedCount / verificationStages.length) * 100}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-muted">
+                    {verifiedCount} of {verificationStages.length} checks complete
+                  </p>
+                  {incomplete && (
+                    <>
+                      <p className="mt-2 text-xs text-charcoal">
+                        Unverified profiles get fewer job matches and can't withdraw earnings.
+                      </p>
+                      <Link href="/worker/verification" className="mt-3 block">
+                        <Button size="sm" className="w-full !bg-gold hover:!bg-gold-2">
+                          Complete verification
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </>
+              ) : (
+                <p className="mt-3 text-xs text-muted">Loading…</p>
               )}
-            </>
-          ) : (
-            <p className="mt-3 text-xs text-muted">Loading…</p>
-          )}
-        </div>
+            </div>
+          );
+
+          return incomplete ? [verificationCard, earningsCard] : [earningsCard, verificationCard];
+        })()}
 
         <div className="rounded-lg border border-border bg-white p-5">
           <div className="flex items-center justify-between">

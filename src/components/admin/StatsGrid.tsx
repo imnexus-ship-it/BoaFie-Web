@@ -17,14 +17,14 @@ export function StatsGrid({ stats }: { stats: Stat[] }) {
       {stats.map((s) => {
         const Icon = s.icon;
         const body = (
-          <CardBody>
-            <div className="flex items-center gap-3">
+          <CardBody className="flex h-full flex-col">
+            <div className="flex flex-1 items-center gap-3">
               <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.iconBg ?? 'bg-green-3'}`}>
                 <Icon className={`h-5 w-5 ${s.iconColor ?? 'text-green'}`} />
               </div>
               <div className="min-w-0">
-                <p className="truncate font-head text-lg font-bold text-charcoal">{s.value}</p>
-                <p className="truncate text-xs text-muted">{s.label}</p>
+                <p className="break-words font-head text-lg font-bold leading-tight text-charcoal">{s.value}</p>
+                <p className="text-xs leading-tight text-muted">{s.label}</p>
               </div>
             </div>
             {s.href && (
