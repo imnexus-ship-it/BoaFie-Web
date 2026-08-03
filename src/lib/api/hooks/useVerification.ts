@@ -26,6 +26,20 @@ export function useConfirmPhoneOtp() {
   });
 }
 
+export function useSendEmailCode() {
+  return useMutation({
+    mutationFn: () => api.post<{ sent: boolean }>('/verification/email/send'),
+  });
+}
+
+export function useConfirmEmailCode() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) => api.post<Verification>('/verification/email/confirm', { code }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['verification', 'status'] }),
+  });
+}
+
 export function useSubmitId() {
   const queryClient = useQueryClient();
   return useMutation({

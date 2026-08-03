@@ -143,6 +143,7 @@ export interface Verification {
   id: string;
   user_id: string;
   phone_status: VerifyStatus;
+  email_status: VerifyStatus;
   id_status: VerifyStatus;
   selfie_status: VerifyStatus;
   location_status: VerifyStatus;

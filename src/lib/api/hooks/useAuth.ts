@@ -11,12 +11,14 @@ interface AuthResponse {
 }
 
 /**
- * Set on successful email/password registration for worker roles, read
- * once by the worker dashboard to prompt phone verification right after
- * signup — see components/verification/PhoneVerification.tsx. Written
- * inside this hook's own onSuccess (not a per-call one) because
- * useRedirectIfAuthed can navigate away the instant setSession fires,
- * racing past anything attached to the .mutate() call itself.
+ * Legacy flag the worker dashboard still reads (and clears) to prompt
+ * phone verification right after signup — see
+ * components/verification/PhoneVerification.tsx. No longer set here: the
+ * multi-step signup wizard now verifies phone and email inline (see
+ * components/auth/signup/VerifyContactStep.tsx) before the user ever
+ * reaches the dashboard, so setting it again here would just produce a
+ * redundant "verify your phone" nudge for something already done. Kept
+ * exported since the dashboard still imports it for its read/clear guard.
  */
 export const JUST_SIGNED_UP_KEY = 'boafie-just-signed-up';
 
@@ -28,20 +30,28 @@ export function useLogin() {
   });
 }
 
+export interface RegisterInput {
+  email: string;
+  password: string;
+  full_name: string;
+  role: 'client' | 'artisan' | 'freelancer';
+  phone?: string;
+  country_of_residence?: string;
+  region?: string;
+  city?: string;
+  date_of_birth?: string;
+  gender?: string;
+  referral_code?: string;
+  preferred_contact_method?: string;
+  marketing_opt_in?: boolean;
+  accepted_terms: true;
+}
+
 export function useRegister() {
   const setSession = useAuthStore((s) => s.setSession);
-  return useMutation<
-    AuthResponse,
-    ApiError,
-    { email: string; password: string; full_name: string; role: 'client' | 'artisan' | 'freelancer'; phone?: string }
-  >({
+  return useMutation<AuthResponse, ApiError, RegisterInput>({
     mutationFn: (body) => api.post<AuthResponse>('/auth/register', body, { auth: false }),
-    onSuccess: (data) => {
-      setSession(data.user, data.access_token, data.refresh_token);
-      if (data.user.role === 'artisan' || data.user.role === 'freelancer') {
-        sessionStorage.setItem(JUST_SIGNED_UP_KEY, '1');
-      }
-    },
+    onSuccess: (data) => setSession(data.user, data.access_token, data.refresh_token),
   });
 }
 
