@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Image as ImageIcon, Star, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
+import { FileUpload } from '@/components/ui/FileUpload';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Modal } from '@/components/ui/Modal';
@@ -99,15 +100,7 @@ export default function PortfolioPage() {
         >
           <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
           <Textarea label="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Input
-            label="Photo URL"
-            value={mediaUrl}
-            onChange={(e) => setMediaUrl(e.target.value)}
-            placeholder="https://…"
-          />
-          <p className="text-xs text-muted">
-            Paste an image URL for now — direct upload wires up once /uploads/image is connected client-side.
-          </p>
+          <FileUpload label="Photo" value={mediaUrl} onUploaded={setMediaUrl} />
           {create.isError && <p className="text-sm text-red-600">{create.error.message}</p>}
           <Button type="submit" loading={create.isPending}>
             Add item

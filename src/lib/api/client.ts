@@ -65,15 +65,19 @@ async function refreshAccessToken(): Promise<string | null> {
 async function doFetch(path: string, options: RequestOptions, retryOn401: boolean): Promise<Response> {
   const { body, auth = true, headers, ...rest } = options;
   const token = auth ? useAuthStore.getState().accessToken : null;
+  // FormData (file uploads) must NOT be JSON-stringified, and must NOT get
+  // an explicit Content-Type — the browser sets multipart/form-data with
+  // the correct boundary itself only when the header is left unset.
+  const isFormData = body instanceof FormData;
 
   const res = await fetch(`${API_URL}${path}`, {
     ...rest,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
   });
 
   // Only retry requests that carried a token — auth:false calls (login,

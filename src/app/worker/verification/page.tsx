@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Camera, FileBadge, MapPin, Phone, ShieldCheck, UserSquare2 } from 'lucide-react';
 import { Card, CardBody } from '@/components/ui/Card';
+import { FileUpload } from '@/components/ui/FileUpload';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
@@ -58,9 +59,9 @@ function IdStep() {
         <option value="drivers_license">Driver's license</option>
       </Select>
       <Input label="ID number" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} required />
-      <Input label="Front photo URL" value={frontUrl} onChange={(e) => setFrontUrl(e.target.value)} placeholder="https://…" required />
+      <FileUpload label="Front photo" value={frontUrl} onUploaded={setFrontUrl} />
       {submit.isError && <p className="text-sm text-red-600">{submit.error.message}</p>}
-      <Button type="submit" size="sm" loading={submit.isPending} className="w-fit">
+      <Button type="submit" size="sm" loading={submit.isPending} disabled={!frontUrl} className="w-fit">
         Submit ID
       </Button>
     </form>
@@ -78,9 +79,9 @@ function SelfieStep() {
       }}
       className="flex flex-col gap-3"
     >
-      <Input label="Selfie photo URL" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" required />
+      <FileUpload label="Selfie photo" value={url} onUploaded={setUrl} />
       {submit.isError && <p className="text-sm text-red-600">{submit.error.message}</p>}
-      <Button type="submit" size="sm" loading={submit.isPending} className="w-fit">
+      <Button type="submit" size="sm" loading={submit.isPending} disabled={!url} className="w-fit">
         Submit selfie
       </Button>
     </form>
@@ -133,9 +134,9 @@ function TradeCertStep() {
       }}
       className="flex flex-col gap-3"
     >
-      <Input label="Certificate photo URL" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" required />
+      <FileUpload label="Certificate photo" value={url} onUploaded={setUrl} />
       {submit.isError && <p className="text-sm text-red-600">{submit.error.message}</p>}
-      <Button type="submit" size="sm" variant="secondary" loading={submit.isPending} className="w-fit">
+      <Button type="submit" size="sm" variant="secondary" loading={submit.isPending} disabled={!url} className="w-fit">
         Submit certificate
       </Button>
     </form>
