@@ -160,14 +160,24 @@ export function PersonalInfoStep({
         </Select>
 
         <div className="grid grid-cols-2 gap-3">
-          <Select label="Region / State" required value={region} onChange={(e) => setRegion(e.target.value)}>
-            <option value="">Select a region…</option>
-            {residenceCountry?.regions.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </Select>
+          {residenceCountry && residenceCountry.regions.length > 0 ? (
+            <Select label="Region / State" required value={region} onChange={(e) => setRegion(e.target.value)}>
+              <option value="">Select a region…</option>
+              {residenceCountry.regions.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <Input
+              label="Region / State"
+              required
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              placeholder="Region / state / province"
+            />
+          )}
           <Input
             label="City / Town"
             required

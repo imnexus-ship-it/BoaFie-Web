@@ -139,14 +139,18 @@ export function BusinessInfoStep({ onDone }: { onDone: () => void }) {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Select label="Region / State" value={region} onChange={(e) => setRegion(e.target.value)}>
-            <option value="">Select a region…</option>
-            {businessCountry?.regions.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </Select>
+          {businessCountry && businessCountry.regions.length > 0 ? (
+            <Select label="Region / State" value={region} onChange={(e) => setRegion(e.target.value)}>
+              <option value="">Select a region…</option>
+              {businessCountry.regions.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </Select>
+          ) : (
+            <Input label="Region / State" value={region} onChange={(e) => setRegion(e.target.value)} placeholder="Region / state / province" />
+          )}
           <Input label="City / Town" value={city} onChange={(e) => setCity(e.target.value)} error={cityError} />
         </div>
 
