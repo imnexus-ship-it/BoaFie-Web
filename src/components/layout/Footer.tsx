@@ -1,5 +1,31 @@
 import Link from 'next/link';
+import { Facebook, Instagram, Youtube } from 'lucide-react';
 import { Logo } from './Logo';
+
+/** lucide-react has no official X or TikTok glyphs — inline brand SVGs, sized to match lucide's 24x24/stroke-based icons. */
+function XIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function TikTokIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M16.6 5.82c-1.01-.87-1.66-2.14-1.66-3.57h-3.2v13.5c0 1.55-1.26 2.8-2.8 2.8a2.8 2.8 0 1 1 0-5.6c.28 0 .55.04.8.12V9.9a6.14 6.14 0 0 0-.8-.05 6 6 0 1 0 6 6V9.28a8.36 8.36 0 0 0 4.86 1.56V7.65c-1.08 0-2.14-.34-3-.98a5.7 5.7 0 0 1-.2-.85z" />
+    </svg>
+  );
+}
+
+const SOCIAL_LINKS = [
+  { href: 'https://www.tiktok.com/@boafietech', label: 'TikTok', icon: TikTokIcon },
+  { href: 'https://www.youtube.com/channel/UCr15yMDoG8GT0EnS4il5ayw', label: 'YouTube', icon: Youtube },
+  { href: 'https://www.instagram.com/boafietech/', label: 'Instagram', icon: Instagram },
+  { href: 'https://web.facebook.com/profile.php?id=61592918875830', label: 'Facebook', icon: Facebook },
+  { href: 'https://x.com/boafietech', label: 'X', icon: XIcon },
+];
 
 const COLUMNS = [
   {
@@ -42,6 +68,21 @@ export function Footer() {
             <p className="mt-3 max-w-xs text-sm text-muted">
               The verified way to hire artisans and freelancers in Ghana — trusted by clients at home and across the diaspora.
             </p>
+            <ul className="mt-4 flex items-center gap-3">
+              {SOCIAL_LINKS.map((s) => (
+                <li key={s.label}>
+                  <a
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-green hover:text-green"
+                  >
+                    <s.icon className="h-4 w-4" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
           {COLUMNS.map((col) => (
             <div key={col.title}>
