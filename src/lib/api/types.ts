@@ -151,6 +151,22 @@ export interface Verification {
   overall_verified: boolean;
 }
 
+export interface BusinessProfile {
+  id: string;
+  user_id: string;
+  legal_business_name: string;
+  trading_name?: string | null;
+  business_type?: string | null;
+  registration_number?: string | null;
+  tax_id?: string | null;
+  industry?: string | null;
+  business_email?: string | null;
+  business_phone?: string | null;
+  region?: string | null;
+  city?: string | null;
+  created_at?: string;
+}
+
 export interface WorkerMatch {
   type: 'artisan' | 'freelancer';
   score: number;
