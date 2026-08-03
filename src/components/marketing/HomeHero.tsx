@@ -4,9 +4,10 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, CheckCircle2, Lock, Star, Search, MapPin, LayoutGrid } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Home, Lock, Star, Search, MapPin, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
+import { StarRating } from '@/components/ui/StarRating';
 import { POPULAR_CATEGORIES } from '@/lib/constants/categories';
 
 const TRUST_BADGES = [
@@ -23,9 +24,9 @@ export function HomeHero() {
 
   return (
     <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-8">
-      <div className="grid items-center gap-10 lg:grid-cols-2">
+      <div className="grid items-start gap-10 lg:grid-cols-2">
         {/* Left: copy */}
-        <div>
+        <div className="lg:pt-6">
           <h1 className="font-head text-4xl font-bold leading-[1.1] text-white sm:text-5xl">
             Find trusted
             <br />
@@ -61,27 +62,32 @@ export function HomeHero() {
         </div>
 
         {/* Right: hero photo + trust card */}
-        <div className="relative hidden lg:block">
-          <div className="relative flex aspect-[4/5] items-end justify-center overflow-hidden rounded-lg bg-white/5">
-            <Image
-              src="/images/hero-worker.png"
-              alt="A verified BoaFie professional"
-              width={1400}
-              height={1120}
-              priority
-              className="h-[92%] w-auto object-contain object-bottom"
-            />
+        <div className="relative hidden h-[560px] lg:block">
+          <Home
+            className="pointer-events-none absolute -right-10 -top-6 h-[130%] w-[130%] text-white/[0.04]"
+            strokeWidth={1}
+          />
+          <Image
+            src="/images/hero-worker.png"
+            alt="A verified BoaFie professional"
+            width={1400}
+            height={1120}
+            priority
+            className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto object-contain object-bottom"
+          />
 
-            <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-lg bg-white p-4 shadow-card">
-              <div className="flex -space-x-2">
-                <Avatar name="K A" size={32} className="border-2 border-white" />
-                <Avatar name="A S" size={32} className="border-2 border-white" />
-                <Avatar name="Y B" size={32} className="border-2 border-white" />
+          <div className="absolute left-0 top-[40%] z-10 flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 p-4 shadow-card backdrop-blur-md">
+            <div className="flex -space-x-2">
+              <Avatar name="K A" size={32} className="border-2 border-navy" />
+              <Avatar name="A S" size={32} className="border-2 border-navy" />
+              <Avatar name="Y B" size={32} className="border-2 border-navy" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-head text-base font-bold text-white">4.8/5</span>
+                <StarRating value={4.8} size={12} />
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-charcoal">100% ID Verified</p>
-                <p className="text-xs text-muted">Every professional, checked before hire</p>
-              </div>
+              <p className="text-xs text-white/70">Based on 2,345+ reviews</p>
             </div>
           </div>
         </div>
