@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, CheckCircle2, Lock, Star, Search, MapPin, LayoutGrid, HardHat } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Lock, Star, Search, MapPin, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { POPULAR_CATEGORIES } from '@/lib/constants/categories';
@@ -59,20 +60,17 @@ export function HomeHero() {
           </div>
         </div>
 
-        {/* Right: illustrated panel + trust card (no real photo asset available — placeholder) */}
+        {/* Right: hero photo + trust card */}
         <div className="relative hidden lg:block">
-          <div className="relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-lg bg-white/5">
-            <svg className="absolute h-[85%] w-[85%] text-white/10" viewBox="0 0 100 100" fill="none">
-              <path
-                d="M10 45 L50 10 L90 45"
-                stroke="currentColor"
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <rect x="22" y="45" width="56" height="45" rx="4" stroke="currentColor" strokeWidth="6" />
-            </svg>
-            <HardHat className="h-24 w-24 text-gold-2/70" />
+          <div className="relative flex aspect-[4/5] items-end justify-center overflow-hidden rounded-lg bg-white/5">
+            <Image
+              src="/images/hero-worker.png"
+              alt="A verified BoaFie professional"
+              width={1400}
+              height={1120}
+              priority
+              className="h-[92%] w-auto object-contain object-bottom"
+            />
 
             <div className="absolute bottom-5 left-5 right-5 flex items-center gap-3 rounded-lg bg-white p-4 shadow-card">
               <div className="flex -space-x-2">
