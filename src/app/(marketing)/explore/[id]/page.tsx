@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { StarRating } from '@/components/ui/StarRating';
 import { formatCurrency } from '@/lib/utils/currency';
+import { timeAgo } from '@/lib/utils/date';
 import { useArtisan } from '@/lib/api/hooks/useArtisans';
 import { useFreelancer } from '@/lib/api/hooks/useFreelancers';
 import { useConversations, useCreateConversation } from '@/lib/api/hooks/useMessaging';
+import { useWorkerReviews } from '@/lib/api/hooks/useReviews';
 import { useAuthStore } from '@/lib/store/auth-store';
 
 const MESSAGES_BASE: Record<string, string> = {
@@ -32,6 +35,7 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
   // remove this — noted as a good follow-up endpoint.)
   const artisan = useArtisan(id);
   const freelancer = useFreelancer(artisan.isError ? id : undefined);
+  const reviews = useWorkerReviews(artisan.data?.user_id ?? freelancer.data?.user_id);
 
   if (artisan.isLoading || (artisan.isError && freelancer.isLoading)) return <PageSpinner />;
 
@@ -71,7 +75,7 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
               {verified && <Badge variant="green">Verified</Badge>}
             </div>
             <p className="mt-1 capitalize text-muted">{heading}</p>
-            <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted">
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted">
               {worker.location_text && (
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" /> {worker.location_text}
@@ -80,6 +84,12 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
               <span className="flex items-center gap-1">
                 <Briefcase className="h-4 w-4" /> {worker.total_jobs_done} jobs completed
               </span>
+              {!!reviews.data?.count && (
+                <span className="flex items-center gap-1.5">
+                  <StarRating value={reviews.data.average_rating ?? 0} size={14} />
+                  {reviews.data.average_rating?.toFixed(1)} ({reviews.data.count})
+                </span>
+              )}
             </div>
             {worker.ai_bio && <p className="mt-4 text-sm text-charcoal">{worker.ai_bio}</p>}
           </div>
@@ -95,6 +105,35 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
           </div>
         </CardBody>
       </Card>
+
+      {!!reviews.data?.items.length && (
+        <Card className="mt-6">
+          <CardBody>
+            <div className="mb-4 flex items-center gap-2">
+              <h2 className="font-head text-base font-semibold text-charcoal">Reviews</h2>
+              <StarRating value={reviews.data.average_rating ?? 0} size={16} />
+              <span className="text-sm text-muted">
+                {reviews.data.average_rating?.toFixed(1)} ({reviews.data.count} review{reviews.data.count === 1 ? '' : 's'})
+              </span>
+            </div>
+            <div className="flex flex-col divide-y divide-border">
+              {reviews.data.items.map((r) => (
+                <div key={r.id} className="flex gap-3 py-4 first:pt-0 last:pb-0">
+                  <Avatar src={r.reviewer?.avatar_url} name={r.reviewer?.full_name} size={36} />
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-medium text-charcoal">{r.reviewer?.full_name || 'BoaFie user'}</p>
+                      <StarRating value={r.rating} size={12} />
+                      <span className="text-xs text-muted">{timeAgo(r.created_at)}</span>
+                    </div>
+                    {r.comment && <p className="mt-1 text-sm text-charcoal">{r.comment}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      )}
     </div>
   );
 }

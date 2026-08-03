@@ -77,6 +77,9 @@ export function useCompleteContract() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.patch<Contract>(`/contracts/${id}/complete`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['contracts'] }),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contract', id] });
+    },
   });
 }

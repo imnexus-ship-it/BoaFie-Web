@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, Circle, Clock } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -12,8 +12,10 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { EscrowPanel } from '@/components/escrow/EscrowPanel';
 import { formatCurrency } from '@/lib/utils/currency';
+import { cn } from '@/lib/utils/cn';
 import {
   useApproveMilestone,
+  useCompleteContract,
   useContract,
   useCreateMilestone,
   useMilestones,
@@ -21,6 +23,7 @@ import {
   useStartMilestone,
   useSubmitMilestone,
 } from '@/lib/api/hooks/useContracts';
+import { useCreateReview } from '@/lib/api/hooks/useReviews';
 import { Milestone } from '@/lib/api/types';
 import { useAuthStore } from '@/lib/store/auth-store';
 
@@ -242,10 +245,73 @@ function AddMilestoneForm({ contractId }: { contractId: string }) {
   );
 }
 
+function ReviewForm({ contractId }: { contractId: string }) {
+  const createReview = useCreateReview(contractId);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState('');
+
+  if (createReview.isSuccess) {
+    return (
+      <Card>
+        <CardBody>
+          <p className="text-sm font-medium text-green">Thanks for your review!</p>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardBody>
+        <h2 className="mb-3 font-head text-base font-semibold text-charcoal">Leave a review</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (rating < 1) return;
+            createReview.mutate({ rating, comment: comment || undefined });
+          }}
+          className="flex flex-col gap-3"
+        >
+          <div className="flex items-center gap-1" onMouseLeave={() => setHoverRating(0)}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setRating(star)}
+                onMouseEnter={() => setHoverRating(star)}
+                aria-label={`${star} star${star > 1 ? 's' : ''}`}
+              >
+                <Star
+                  className={cn(
+                    'h-7 w-7',
+                    star <= (hoverRating || rating) ? 'fill-gold-2 text-gold-2' : 'fill-transparent text-border',
+                  )}
+                />
+              </button>
+            ))}
+          </div>
+          <Textarea
+            placeholder="How was your experience working with them?"
+            rows={3}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+          {createReview.isError && <p className="text-sm text-red-600">{createReview.error.message}</p>}
+          <Button type="submit" size="sm" className="w-fit" disabled={rating < 1} loading={createReview.isPending}>
+            Submit review
+          </Button>
+        </form>
+      </CardBody>
+    </Card>
+  );
+}
+
 export function ContractDetail({ contractId }: { contractId: string }) {
   const contract = useContract(contractId);
   const milestones = useMilestones(contractId);
   const currentUser = useAuthStore((s) => s.user);
+  const completeContract = useCompleteContract();
 
   if (contract.isLoading) return <PageSpinner />;
   if (contract.isError || !contract.data)
@@ -276,6 +342,13 @@ export function ContractDetail({ contractId }: { contractId: string }) {
           <div className="text-right">
             <p className="font-head text-lg font-bold text-green">{formatCurrency(c.agreed_amount, c.currency)}</p>
             <Badge variant="gold">{c.status.replace('_', ' ')}</Badge>
+            {isClient && c.status !== 'completed' && (
+              <div className="mt-2">
+                <Button size="sm" variant="secondary" loading={completeContract.isPending} onClick={() => completeContract.mutate(contractId)}>
+                  Mark as complete
+                </Button>
+              </div>
+            )}
           </div>
         </CardBody>
       </Card>
@@ -320,6 +393,8 @@ export function ContractDetail({ contractId }: { contractId: string }) {
           )}
         </CardBody>
       </Card>
+
+      {isClient && c.status === 'completed' && <ReviewForm contractId={contractId} />}
     </div>
   );
 }

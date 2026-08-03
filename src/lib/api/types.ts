@@ -173,6 +173,23 @@ export interface WorkerMatch {
   profile: ArtisanProfile | FreelancerProfile;
 }
 
+export interface Review {
+  id: string;
+  contract_id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  rating: number;
+  comment?: string | null;
+  created_at: string;
+  reviewer?: Pick<User, 'id' | 'full_name' | 'avatar_url'>;
+}
+
+export interface ReviewSummary {
+  items: Review[];
+  average_rating: number | null;
+  count: number;
+}
+
 export interface DashboardSummary {
   role: UserRole;
   active_jobs?: number;
