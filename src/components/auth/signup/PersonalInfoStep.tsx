@@ -6,7 +6,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { SocialAuthButtons } from '@/components/auth/SocialAuthButtons';
 import { useRegister } from '@/lib/api/hooks/useAuth';
-import { COUNTRIES, DEFAULT_COUNTRY_CODE } from '@/lib/constants/countries';
+import { CITY_NAME_PATTERN, COUNTRIES, DEFAULT_COUNTRY_CODE, findCountry, isValidPhoneForCountry } from '@/lib/constants/countries';
 
 const CONTACT_METHODS = ['email', 'phone', 'whatsapp'] as const;
 
@@ -25,7 +25,7 @@ export function PersonalInfoStep({
   const [email, setEmail] = useState('');
   const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
   const [mobile, setMobile] = useState('');
-  const [countryOfResidence, setCountryOfResidence] = useState('Ghana');
+  const [residenceCode, setResidenceCode] = useState(DEFAULT_COUNTRY_CODE);
   const [region, setRegion] = useState('');
   const [city, setCity] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -37,8 +37,11 @@ export function PersonalInfoStep({
   const [confirmedAccurate, setConfirmedAccurate] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | undefined>();
+  const [cityError, setCityError] = useState<string | undefined>();
 
-  const dialCode = COUNTRIES.find((c) => c.code === countryCode)?.dialCode ?? '';
+  const dialCode = findCountry(countryCode)?.dialCode ?? '';
+  const residenceCountry = findCountry(residenceCode);
 
   return (
     <div className="flex flex-col gap-5">
@@ -54,21 +57,47 @@ export function PersonalInfoStep({
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          let hasError = false;
+
           if (password !== confirmPassword) {
             setPasswordMismatch(true);
-            return;
+            hasError = true;
+          } else {
+            setPasswordMismatch(false);
           }
-          setPasswordMismatch(false);
+
+          const phoneDigits = mobile.replace(/\D/g, '');
+          if (!isValidPhoneForCountry(phoneDigits, countryCode)) {
+            const expected = findCountry(countryCode)?.phoneDigits;
+            setPhoneError(
+              expected
+                ? `Enter a valid ${countryCode} number (${expected.min === expected.max ? expected.min : `${expected.min}-${expected.max}`} digits)`
+                : 'Enter a valid phone number',
+            );
+            hasError = true;
+          } else {
+            setPhoneError(undefined);
+          }
+
+          if (!CITY_NAME_PATTERN.test(city.trim())) {
+            setCityError('Enter a valid city/town name (letters only)');
+            hasError = true;
+          } else {
+            setCityError(undefined);
+          }
+
+          if (hasError) return;
+
           register.mutate(
             {
               email,
               password,
               full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
               role,
-              phone: mobile ? `${dialCode}${mobile.replace(/\D/g, '')}` : undefined,
-              country_of_residence: countryOfResidence || undefined,
+              phone: phoneDigits ? `${dialCode}${phoneDigits}` : undefined,
+              country_of_residence: residenceCountry?.name,
               region: region || undefined,
-              city: city || undefined,
+              city: city.trim() || undefined,
               date_of_birth: isWorker && dateOfBirth ? dateOfBirth : undefined,
               referral_code: referralCode || undefined,
               preferred_contact_method: !isWorker ? contactMethod : undefined,
@@ -88,27 +117,65 @@ export function PersonalInfoStep({
         <Input label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
 
         <div className="grid grid-cols-[auto_1fr] gap-3">
-          <Select label="Code" value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="w-28">
+          <Select
+            label="Code"
+            value={countryCode}
+            onChange={(e) => {
+              setCountryCode(e.target.value);
+              setPhoneError(undefined);
+            }}
+            className="w-28"
+          >
             {COUNTRIES.map((c) => (
               <option key={c.code} value={c.code}>
                 {c.dialCode} {c.code}
               </option>
             ))}
           </Select>
-          <Input label="Mobile number" required value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="244 000 000" />
+          <Input
+            label="Mobile number"
+            required
+            inputMode="numeric"
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value.replace(/[^\d\s]/g, ''))}
+            placeholder="244 000 000"
+            error={phoneError}
+          />
         </div>
 
-        <Select label="Country of residence" required value={countryOfResidence} onChange={(e) => setCountryOfResidence(e.target.value)}>
+        <Select
+          label="Country of residence"
+          required
+          value={residenceCode}
+          onChange={(e) => {
+            setResidenceCode(e.target.value);
+            setRegion('');
+          }}
+        >
           {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.name}>
+            <option key={c.code} value={c.code}>
               {c.name}
             </option>
           ))}
         </Select>
 
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Region / State" required value={region} onChange={(e) => setRegion(e.target.value)} placeholder="Greater Accra" />
-          <Input label="City / Town" required value={city} onChange={(e) => setCity(e.target.value)} placeholder="Accra" />
+          <Select label="Region / State" required value={region} onChange={(e) => setRegion(e.target.value)}>
+            <option value="">Select a region…</option>
+            {residenceCountry?.regions.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </Select>
+          <Input
+            label="City / Town"
+            required
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Accra"
+            error={cityError}
+          />
         </div>
 
         {isWorker && (

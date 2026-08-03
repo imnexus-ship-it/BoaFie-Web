@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useCreateBusinessProfile } from '@/lib/api/hooks/useBusiness';
+import { CITY_NAME_PATTERN, COUNTRIES, DEFAULT_COUNTRY_CODE, findCountry, isValidPhoneForCountry } from '@/lib/constants/countries';
 
 const BUSINESS_TYPES = [
   { value: 'sole_proprietorship', label: 'Sole proprietorship' },
@@ -28,8 +29,13 @@ export function BusinessInfoStep({ onDone }: { onDone: () => void }) {
   const [industry, setIndustry] = useState('');
   const [businessEmail, setBusinessEmail] = useState('');
   const [businessPhone, setBusinessPhone] = useState('');
+  const [businessCountryCode, setBusinessCountryCode] = useState(DEFAULT_COUNTRY_CODE);
   const [region, setRegion] = useState('');
   const [city, setCity] = useState('');
+  const [phoneError, setPhoneError] = useState<string | undefined>();
+  const [cityError, setCityError] = useState<string | undefined>();
+
+  const businessCountry = findCountry(businessCountryCode);
 
   return (
     <div className="flex flex-col gap-5">
@@ -43,6 +49,30 @@ export function BusinessInfoStep({ onDone }: { onDone: () => void }) {
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          let hasError = false;
+
+          const phoneDigits = businessPhone.replace(/\D/g, '');
+          if (phoneDigits && !isValidPhoneForCountry(phoneDigits, businessCountryCode)) {
+            const expected = businessCountry?.phoneDigits;
+            setPhoneError(
+              expected
+                ? `Enter a valid ${businessCountryCode} number (${expected.min === expected.max ? expected.min : `${expected.min}-${expected.max}`} digits)`
+                : 'Enter a valid phone number',
+            );
+            hasError = true;
+          } else {
+            setPhoneError(undefined);
+          }
+
+          if (city.trim() && !CITY_NAME_PATTERN.test(city.trim())) {
+            setCityError('Enter a valid city/town name (letters only)');
+            hasError = true;
+          } else {
+            setCityError(undefined);
+          }
+
+          if (hasError) return;
+
           create.mutate(
             {
               legal_business_name: legalName,
@@ -52,9 +82,9 @@ export function BusinessInfoStep({ onDone }: { onDone: () => void }) {
               tax_id: taxId || undefined,
               industry: industry || undefined,
               business_email: businessEmail || undefined,
-              business_phone: businessPhone || undefined,
+              business_phone: phoneDigits || undefined,
               region: region || undefined,
-              city: city || undefined,
+              city: city.trim() || undefined,
             },
             { onSuccess: onDone },
           );
@@ -80,14 +110,44 @@ export function BusinessInfoStep({ onDone }: { onDone: () => void }) {
 
         <Input label="Industry" value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. Construction, Hospitality" />
 
-        <div className="grid grid-cols-2 gap-3">
-          <Input label="Business email (optional)" type="email" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} />
-          <Input label="Business phone (optional)" value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} />
+        <Input label="Business email (optional)" type="email" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} />
+
+        <div className="grid grid-cols-[auto_1fr] gap-3">
+          <Select
+            label="Code"
+            value={businessCountryCode}
+            onChange={(e) => {
+              setBusinessCountryCode(e.target.value);
+              setRegion('');
+              setPhoneError(undefined);
+            }}
+            className="w-28"
+          >
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.dialCode} {c.code}
+              </option>
+            ))}
+          </Select>
+          <Input
+            label="Business phone (optional)"
+            inputMode="numeric"
+            value={businessPhone}
+            onChange={(e) => setBusinessPhone(e.target.value.replace(/[^\d\s]/g, ''))}
+            error={phoneError}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Region / State" value={region} onChange={(e) => setRegion(e.target.value)} />
-          <Input label="City / Town" value={city} onChange={(e) => setCity(e.target.value)} />
+          <Select label="Region / State" value={region} onChange={(e) => setRegion(e.target.value)}>
+            <option value="">Select a region…</option>
+            {businessCountry?.regions.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </Select>
+          <Input label="City / Town" value={city} onChange={(e) => setCity(e.target.value)} error={cityError} />
         </div>
 
         {create.isError && <p className="text-sm text-red-600">{create.error.message}</p>}
