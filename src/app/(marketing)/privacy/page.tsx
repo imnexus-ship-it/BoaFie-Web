@@ -88,7 +88,7 @@ const SECTIONS = [
   {
     title: '9. Contact',
     body: [
-      `Questions about this policy or your data can be sent to privacy@boafie.app.`,
+      `Questions about this policy or your data can be sent to info.boafietechltd@gmail.com.`,
     ],
   },
 ];
