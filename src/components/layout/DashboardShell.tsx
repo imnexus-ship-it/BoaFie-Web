@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { DashboardTopbar } from './DashboardTopbar';
 import { Sidebar, SidebarLink } from './Sidebar';
 
@@ -12,11 +15,13 @@ export function DashboardShell({
   sidebarBottomSlot?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-cream">
-      <Sidebar links={links} bottomSlot={sidebarBottomSlot} />
+      <Sidebar links={links} bottomSlot={sidebarBottomSlot} mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <DashboardTopbar messagesHref={messagesHref} />
+        <DashboardTopbar messagesHref={messagesHref} onMenuClick={() => setMobileNavOpen(true)} />
         <main className="min-w-0 flex-1 px-4 py-8 sm:px-8">{children}</main>
       </div>
     </div>

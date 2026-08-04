@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, Search, ChevronDown } from 'lucide-react';
+import { Menu, MessageSquare, Search, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { Avatar } from '@/components/ui/Avatar';
+import { Logo } from '@/components/layout/Logo';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { useConversations } from '@/lib/api/hooks/useMessaging';
 import { settingsPathForRole } from '@/lib/utils/routing';
@@ -17,7 +18,7 @@ const ROLE_LABEL: Record<string, string> = {
   admin: 'Admin',
 };
 
-export function DashboardTopbar({ messagesHref }: { messagesHref?: string }) {
+export function DashboardTopbar({ messagesHref, onMenuClick }: { messagesHref?: string; onMenuClick?: () => void }) {
   const { user, clearSession } = useAuthStore();
   const router = useRouter();
   const conversations = useConversations();
@@ -28,7 +29,14 @@ export function DashboardTopbar({ messagesHref }: { messagesHref?: string }) {
   const conversationCount = conversations.data?.length ?? 0;
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-white px-4 sm:px-8">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border bg-white px-4 sm:px-8">
+      <div className="flex items-center gap-1 lg:hidden">
+        <button onClick={onMenuClick} aria-label="Open menu" className="rounded-lg p-2 hover:bg-black/5">
+          <Menu className="h-5 w-5 text-charcoal" />
+        </button>
+        <Logo size="sm" />
+      </div>
+
       <form
         className="relative hidden max-w-md flex-1 sm:block"
         onSubmit={(e) => {
