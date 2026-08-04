@@ -29,7 +29,7 @@ export default function LandingPage() {
           {CATEGORIES.map((c) => (
             <Link
               key={c.label}
-              href={`/explore?tab=${c.tab}&category=${c.slug}`}
+              href={`/categories/${c.slug}`}
               className="flex items-center gap-2 rounded-pill border border-border bg-white px-4 py-2.5 text-sm font-medium text-charcoal hover:border-green hover:text-green"
             >
               <c.icon className="h-4 w-4" />

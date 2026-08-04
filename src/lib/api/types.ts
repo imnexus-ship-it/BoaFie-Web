@@ -32,22 +32,35 @@ export interface Category {
   slug: string;
   type: 'artisan' | 'freelancer' | 'both';
   icon?: string | null;
+  description?: string | null;
 }
+
+export type PricingModel = 'hourly' | 'daily' | 'fixed' | null;
 
 export interface ArtisanProfile {
   id: string;
   user_id: string;
   trade_category: string;
   trade_subcategories?: string[];
+  skills?: string[];
   years_experience?: number | null;
   hourly_rate_ghs?: number | null;
   daily_rate_ghs?: number | null;
+  fixed_rate_min_ghs?: number | null;
+  pricing_model?: PricingModel;
   availability: 'available' | 'busy' | 'unavailable';
   location_text?: string | null;
   region?: string | null;
   city?: string | null;
+  tools_owned?: string[];
+  languages?: string[];
+  emergency_hire?: boolean;
   total_jobs_done: number;
   ai_bio?: string | null;
+  avg_rating?: number | null;
+  review_count?: number;
+  verified?: boolean;
+  trade_cert_verified?: boolean;
   users?: Pick<User, 'id' | 'full_name' | 'avatar_url' | 'bio' | 'status'>;
 }
 
@@ -57,11 +70,19 @@ export interface FreelancerProfile {
   title: string;
   skills?: string[];
   hourly_rate_ghs?: number | null;
+  pricing_model?: PricingModel;
   availability: 'available' | 'busy' | 'unavailable';
   remote_only?: boolean;
   location_text?: string | null;
+  region?: string | null;
+  portfolio_url?: string | null;
+  linkedin_url?: string | null;
+  github_url?: string | null;
   total_jobs_done: number;
   ai_bio?: string | null;
+  avg_rating?: number | null;
+  review_count?: number;
+  verified?: boolean;
   users?: Pick<User, 'id' | 'full_name' | 'avatar_url' | 'bio' | 'status'>;
 }
 

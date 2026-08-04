@@ -9,6 +9,8 @@ export interface FreelancerSearchParams {
   skills?: string;
   rate_max?: number;
   remote?: boolean;
+  rating_min?: number;
+  verified?: boolean;
   sort?: string;
   page?: number;
   limit?: number;

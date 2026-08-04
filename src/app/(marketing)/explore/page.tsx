@@ -82,7 +82,7 @@ function ExploreContent() {
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {workers.map((w) => (
-            <WorkerCard key={w.id} worker={w} verified={(w as any).users?.status === 'active'} />
+            <WorkerCard key={w.id} worker={w} />
           ))}
         </div>
       )}

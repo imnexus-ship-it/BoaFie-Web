@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MapPin } from 'lucide-react';
+import { MapPin, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardBody } from '@/components/ui/Card';
@@ -16,6 +16,7 @@ export function WorkerCard({ worker, verified }: { worker: WorkerLike; verified?
   const heading = worker.kind === 'artisan' ? worker.trade_category : worker.title;
   const rate = worker.hourly_rate_ghs;
   const location = worker.kind === 'artisan' ? worker.location_text : worker.location_text;
+  const isVerified = verified ?? worker.verified;
 
   return (
     <Link href={href}>
@@ -29,14 +30,22 @@ export function WorkerCard({ worker, verified }: { worker: WorkerLike; verified?
             </div>
           </div>
 
-          {location && (
-            <p className="flex items-center gap-1 text-xs text-muted">
-              <MapPin className="h-3 w-3" /> {location}
-            </p>
-          )}
+          <div className="flex items-center gap-3 text-xs text-muted">
+            {location && (
+              <span className="flex min-w-0 items-center gap-1">
+                <MapPin className="h-3 w-3 shrink-0" /> <span className="truncate">{location}</span>
+              </span>
+            )}
+            {worker.avg_rating != null && (
+              <span className="flex shrink-0 items-center gap-1">
+                <Star className="h-3 w-3 fill-gold-2 text-gold-2" /> {worker.avg_rating.toFixed(1)}
+                {worker.review_count ? ` (${worker.review_count})` : ''}
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center justify-between pt-1">
-            {verified ? <Badge variant="green">Verified</Badge> : <Badge variant="muted">{worker.total_jobs_done} jobs</Badge>}
+            {isVerified ? <Badge variant="green">Verified</Badge> : <Badge variant="muted">{worker.total_jobs_done} jobs</Badge>}
             {rate ? <span className="font-head text-sm font-semibold text-green">{formatCurrency(rate)}/hr</span> : null}
           </div>
         </CardBody>

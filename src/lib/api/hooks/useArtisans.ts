@@ -9,6 +9,8 @@ export interface ArtisanSearchParams {
   location?: string;
   availability?: string;
   rate_max?: number;
+  rating_min?: number;
+  verified?: boolean;
   sort?: string;
   page?: number;
   limit?: number;

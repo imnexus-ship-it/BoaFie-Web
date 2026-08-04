@@ -30,6 +30,14 @@ export function useMyPortfolio() {
   });
 }
 
+export function usePublicPortfolio(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['portfolio', 'user', userId],
+    queryFn: () => api.get<PortfolioItem[]>(`/portfolio/user/${userId}`, { auth: false }),
+    enabled: !!userId,
+  });
+}
+
 export function useCreatePortfolioItem() {
   const queryClient = useQueryClient();
   return useMutation({
