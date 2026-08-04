@@ -7,6 +7,8 @@ export type VerifyStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 export type JobStatus = 'draft' | 'open' | 'in_progress' | 'completed' | 'cancelled' | 'disputed';
 export type ProposalStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
 export type MilestoneStatus = 'pending' | 'in_progress' | 'submitted' | 'approved' | 'rejected';
+export type EscrowStatus = 'held' | 'released' | 'refunded' | 'disputed';
+export type DisputeStatus = 'open' | 'under_review' | 'resolved_client' | 'resolved_worker' | 'escalated';
 
 export interface User {
   id: string;
@@ -102,6 +104,14 @@ export interface Proposal {
   worker?: Pick<User, 'id' | 'full_name' | 'avatar_url' | 'role'>;
 }
 
+export interface Escrow {
+  total_amount: number;
+  held_amount: number;
+  released_amount: number;
+  refunded_amount: number;
+  status: EscrowStatus;
+}
+
 export interface Contract {
   id: string;
   job_id: string;
@@ -115,6 +125,7 @@ export interface Contract {
   client?: Pick<User, 'id' | 'full_name' | 'avatar_url'>;
   worker?: Pick<User, 'id' | 'full_name' | 'avatar_url'>;
   job?: Pick<Job, 'id' | 'title'>;
+  escrow?: Escrow | null;
 }
 
 export interface Milestone {
@@ -128,6 +139,20 @@ export interface Milestone {
   submission_note?: string | null;
   submission_media?: string[];
   sort_order?: number;
+}
+
+export interface Dispute {
+  id: string;
+  contract_id: string;
+  raised_by: string;
+  against_user: string;
+  reason: string;
+  description: string;
+  evidence_urls?: string[] | null;
+  status: DisputeStatus;
+  resolution_note?: string | null;
+  resolved_at?: string | null;
+  created_at: string;
 }
 
 export interface Wallet {

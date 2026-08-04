@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../client';
-import { Contract, Milestone } from '../types';
+import { Contract, Dispute, Milestone } from '../types';
 
 export function useContracts() {
   return useQuery({
@@ -80,6 +80,27 @@ export function useCompleteContract() {
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
       queryClient.invalidateQueries({ queryKey: ['contract', id] });
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
+    },
+  });
+}
+
+export function useContractDisputes(contractId: string | undefined) {
+  return useQuery({
+    queryKey: ['contracts', contractId, 'disputes'],
+    queryFn: () => api.get<Dispute[]>(`/contracts/${contractId}/disputes`),
+    enabled: !!contractId,
+  });
+}
+
+export function useRaiseDispute(contractId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { reason: string; description: string }) =>
+      api.post<Dispute>(`/contracts/${contractId}/disputes`, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts', contractId, 'disputes'] });
+      queryClient.invalidateQueries({ queryKey: ['contract', contractId] });
     },
   });
 }

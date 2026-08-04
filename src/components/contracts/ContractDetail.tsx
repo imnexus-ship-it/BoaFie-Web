@@ -17,6 +17,7 @@ import {
   useApproveMilestone,
   useCompleteContract,
   useContract,
+  useContractDisputes,
   useCreateMilestone,
   useMilestones,
   useRejectMilestone,
@@ -40,11 +41,13 @@ function MilestoneRow({
   contractId,
   isWorker,
   isClient,
+  hasActiveDispute,
 }: {
   milestone: Milestone;
   contractId: string;
   isWorker: boolean;
   isClient: boolean;
+  hasActiveDispute: boolean;
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [note, setNote] = useState('');
@@ -136,6 +139,7 @@ function MilestoneRow({
                   size="sm"
                   variant="secondary"
                   loading={reject.isPending}
+                  disabled={hasActiveDispute}
                   onClick={() =>
                     reject.mutate({ id: milestone.id, feedback }, { onSuccess: () => setRejecting(false) })
                   }
@@ -149,10 +153,22 @@ function MilestoneRow({
             </>
           ) : (
             <div className="flex gap-2">
-              <Button size="sm" loading={approve.isPending} onClick={() => approve.mutate(milestone.id)}>
+              <Button
+                size="sm"
+                loading={approve.isPending}
+                disabled={hasActiveDispute}
+                title={hasActiveDispute ? 'Blocked while a dispute is open' : undefined}
+                onClick={() => approve.mutate(milestone.id)}
+              >
                 Approve & release funds
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setRejecting(true)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={hasActiveDispute}
+                title={hasActiveDispute ? 'Blocked while a dispute is open' : undefined}
+                onClick={() => setRejecting(true)}
+              >
                 Request changes
               </Button>
             </div>
@@ -310,6 +326,7 @@ function ReviewForm({ contractId }: { contractId: string }) {
 export function ContractDetail({ contractId }: { contractId: string }) {
   const contract = useContract(contractId);
   const milestones = useMilestones(contractId);
+  const disputes = useContractDisputes(contractId);
   const currentUser = useAuthStore((s) => s.user);
   const completeContract = useCompleteContract();
 
@@ -320,11 +337,9 @@ export function ContractDetail({ contractId }: { contractId: string }) {
   const c = contract.data;
   const isWorker = currentUser?.id === c.worker_id;
   const isClient = currentUser?.id === c.client_id;
-
-  const totalMilestones = (milestones.data || []).reduce((sum, m) => sum + Number(m.amount_ghs), 0);
-  const releasedMilestones = (milestones.data || [])
-    .filter((m) => m.status === 'approved')
-    .reduce((sum, m) => sum + Number(m.amount_ghs), 0);
+  const hasActiveDispute = (disputes.data || []).some((d) =>
+    ['open', 'under_review', 'escalated'].includes(d.status),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -344,7 +359,14 @@ export function ContractDetail({ contractId }: { contractId: string }) {
             <Badge variant="gold">{c.status.replace('_', ' ')}</Badge>
             {isClient && c.status !== 'completed' && (
               <div className="mt-2">
-                <Button size="sm" variant="secondary" loading={completeContract.isPending} onClick={() => completeContract.mutate(contractId)}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  loading={completeContract.isPending}
+                  disabled={hasActiveDispute}
+                  title={hasActiveDispute ? 'Blocked while a dispute is open' : undefined}
+                  onClick={() => completeContract.mutate(contractId)}
+                >
                   Mark as complete
                 </Button>
               </div>
@@ -354,10 +376,10 @@ export function ContractDetail({ contractId }: { contractId: string }) {
       </Card>
 
       <EscrowPanel
-        totalAmount={c.agreed_amount}
-        heldAmount={Math.max(0, totalMilestones - releasedMilestones)}
-        releasedAmount={releasedMilestones}
-        currency={c.currency}
+        contract={c}
+        milestones={milestones.data || []}
+        disputes={disputes.data || []}
+        isClient={!!isClient}
       />
 
       <Card>
@@ -381,6 +403,7 @@ export function ContractDetail({ contractId }: { contractId: string }) {
                   contractId={contractId}
                   isWorker={!!isWorker}
                   isClient={!!isClient}
+                  hasActiveDispute={hasActiveDispute}
                 />
               ))}
             </div>
