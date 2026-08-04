@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { Bell, ChevronDown, Menu, X } from 'lucide-react';
 import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { cn } from '@/lib/utils/cn';
 import { useAuthStore } from '@/lib/store/auth-store';
+import { useDashboard } from '@/lib/api/hooks/useDashboard';
 import { dashboardPathForRole } from '@/lib/utils/routing';
 
 function NavDropdown({ label, items }: { label: string; items: { href: string; label: string }[] }) {
@@ -35,6 +36,8 @@ function NavDropdown({ label, items }: { label: string; items: { href: string; l
 export function HomeHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, clearSession } = useAuthStore();
+  const dashboard = useDashboard({ enabled: !!user });
+  const unreadNotifications = dashboard.data?.unread_notifications ?? 0;
   const dashboardHref = user ? dashboardPathForRole(user.role) : '/dashboard';
 
   return (
@@ -104,9 +107,21 @@ export function HomeHeader() {
           )}
         </div>
 
-        <button className="p-2 text-white lg:hidden" onClick={() => setMobileOpen((o) => !o)} aria-label="Toggle menu">
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-1 lg:hidden">
+          {user && (
+            <Link href={dashboardHref} aria-label="Notifications" className="relative p-2 text-white">
+              <Bell className="h-6 w-6" />
+              {unreadNotifications > 0 && (
+                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-white">
+                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                </span>
+              )}
+            </Link>
+          )}
+          <button className="p-2 text-white" onClick={() => setMobileOpen((o) => !o)} aria-label="Toggle menu">
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       {mobileOpen && (

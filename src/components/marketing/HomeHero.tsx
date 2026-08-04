@@ -16,6 +16,25 @@ const TRUST_BADGES = [
   { icon: Star, label: 'Satisfaction Guaranteed' },
 ];
 
+function TrustCard() {
+  return (
+    <>
+      <div className="flex -space-x-2">
+        <Avatar name="K A" size={32} className="border-2 border-navy" />
+        <Avatar name="A S" size={32} className="border-2 border-navy" />
+        <Avatar name="Y B" size={32} className="border-2 border-navy" />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="font-head text-base font-bold text-white">4.8/5</span>
+          <StarRating value={4.8} size={12} />
+        </div>
+        <p className="text-xs text-white/70">Based on 2,345+ reviews</p>
+      </div>
+    </>
+  );
+}
+
 export function HomeHero() {
   const router = useRouter();
   const [service, setService] = useState('');
@@ -24,7 +43,66 @@ export function HomeHero() {
 
   return (
     <div className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-8">
-      <div className="grid items-start gap-10 lg:grid-cols-2">
+      {/* Mobile/tablet hero — separate markup from the desktop layout below
+          so mobile-only design changes can never affect the desktop view. */}
+      <div className="lg:hidden">
+        <div className="grid grid-cols-[1.1fr_1fr] gap-3 sm:gap-6">
+          <div>
+            <h1 className="font-head text-[28px] font-bold leading-[1.15] text-white sm:text-4xl">
+              Find trusted professionals. <span className="text-gold-2">Get work done right.</span>
+            </h1>
+            <p className="mt-3 text-[13px] text-white/70 sm:text-[15px]">
+              BoaFie connects you with verified experts for any job. Secure payments, real reviews, quality results.
+            </p>
+          </div>
+
+          <div className="relative h-[220px] sm:h-[320px]">
+            <Home
+              className="pointer-events-none absolute -right-4 -top-2 h-[120%] w-[120%] text-white/[0.05]"
+              strokeWidth={1}
+            />
+            <Image
+              src="/images/hero-worker.png"
+              alt="A verified BoaFie professional"
+              width={1400}
+              height={1120}
+              priority
+              className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto max-w-full object-contain object-bottom"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2.5">
+          <Link href="/explore">
+            <Button size="lg" className="w-full !bg-gold hover:!bg-gold-2">
+              Find a Professional <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href="/signup?role=artisan">
+            <Button size="lg" variant="outline" className="w-full !border-white/30 !text-white hover:!bg-white/10">
+              Become a Professional
+            </Button>
+          </Link>
+        </div>
+
+        <div className="mt-5 flex items-center justify-center gap-3 rounded-lg border border-white/15 bg-white/10 p-3.5 shadow-card backdrop-blur-md">
+          <TrustCard />
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {TRUST_BADGES.map((b) => (
+            <div key={b.label} className="flex flex-col items-center gap-1.5 text-center">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <b.icon className="h-4 w-4 text-gold-2" />
+              </div>
+              <p className="text-[11px] font-medium leading-tight text-white/80">{b.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop hero — unchanged from the approved design mockup */}
+      <div className="hidden lg:grid lg:items-start lg:gap-10 lg:grid-cols-2">
         {/* Left: copy */}
         <div className="lg:pt-6">
           <h1 className="font-head text-4xl font-bold leading-[1.1] text-white sm:text-5xl">
@@ -62,7 +140,7 @@ export function HomeHero() {
         </div>
 
         {/* Right: hero photo + trust card */}
-        <div className="relative h-[300px] sm:h-[380px] lg:-mt-14 lg:h-[600px]">
+        <div className="relative -mt-14 h-[600px]">
           <Home
             className="pointer-events-none absolute -right-10 -top-6 h-[130%] w-[130%] text-white/[0.04]"
             strokeWidth={1}
@@ -73,31 +151,20 @@ export function HomeHero() {
             width={1400}
             height={1120}
             priority
-            className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto max-w-full object-contain object-bottom lg:inset-x-auto lg:left-1/2 lg:mx-0 lg:max-w-none lg:-translate-x-1/2"
+            className="absolute left-1/2 bottom-0 h-full w-auto max-w-none -translate-x-1/2 object-contain object-bottom"
           />
 
-          <div className="absolute left-0 top-[40%] z-10 flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 p-2.5 shadow-card backdrop-blur-md sm:gap-3 sm:p-4">
-            <div className="flex -space-x-2">
-              <Avatar name="K A" size={32} className="border-2 border-navy" />
-              <Avatar name="A S" size={32} className="border-2 border-navy" />
-              <Avatar name="Y B" size={32} className="border-2 border-navy" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-head text-base font-bold text-white">4.8/5</span>
-                <StarRating value={4.8} size={12} />
-              </div>
-              <p className="text-xs text-white/70">Based on 2,345+ reviews</p>
-            </div>
+          <div className="absolute left-0 top-[40%] z-10 flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 p-4 shadow-card backdrop-blur-md">
+            <TrustCard />
           </div>
         </div>
       </div>
 
       {/* Search bar */}
-      <div className="mt-10 grid gap-3 rounded-lg bg-white p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
+      <div className="mt-8 grid gap-3 rounded-lg border border-white/15 bg-white/5 p-4 sm:mt-10 sm:border-0 sm:bg-white sm:p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
         <div>
-          <label className="mb-1 block text-xs font-medium text-muted">What service do you need?</label>
-          <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5">
+          <label className="mb-1 block text-xs font-medium text-white/80 sm:text-muted">What service do you need?</label>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2.5">
             <Search className="h-4 w-4 shrink-0 text-muted" />
             <input
               value={service}
@@ -108,8 +175,8 @@ export function HomeHero() {
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-muted">Select Location</label>
-          <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5">
+          <label className="mb-1 block text-xs font-medium text-white/80 sm:text-muted">Select Location</label>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2.5">
             <MapPin className="h-4 w-4 shrink-0 text-muted" />
             <input
               value={location}
@@ -119,8 +186,8 @@ export function HomeHero() {
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-muted">Category</label>
-          <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2.5">
+          <label className="mb-1 block text-xs font-medium text-white/80 sm:text-muted">Category</label>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2.5">
             <LayoutGrid className="h-4 w-4 shrink-0 text-muted" />
             <select
               value={category}

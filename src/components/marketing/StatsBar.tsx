@@ -16,15 +16,15 @@ const STATS = [
 export function StatsBar() {
   return (
     <div className="relative z-10 mx-auto max-w-7xl px-4 pb-14 sm:px-8">
-      <div className="grid grid-cols-2 gap-6 rounded-lg bg-white/5 p-6 sm:grid-cols-5">
+      <div className="grid grid-cols-5 gap-2 rounded-lg bg-white/5 p-3 sm:gap-3 lg:gap-6 lg:p-6">
         {STATS.map((s) => (
-          <div key={s.label} className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10">
-              <s.icon className="h-4 w-4 text-gold-2" />
+          <div key={s.label} className="flex flex-col items-center gap-1.5 text-center lg:flex-row lg:items-center lg:gap-3 lg:text-left">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 lg:h-9 lg:w-9">
+              <s.icon className="h-3.5 w-3.5 text-gold-2 lg:h-4 lg:w-4" />
             </div>
             <div className="min-w-0">
-              <p className="truncate font-head text-base font-bold text-white">{s.value}</p>
-              <p className="truncate text-[11px] text-white/60">{s.label}</p>
+              <p className="font-head text-xs font-bold text-white sm:text-sm lg:truncate lg:text-base">{s.value}</p>
+              <p className="text-[9px] leading-tight text-white/60 sm:text-[10px] lg:truncate lg:text-[11px]">{s.label}</p>
             </div>
           </div>
         ))}

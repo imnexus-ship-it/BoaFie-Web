@@ -12,10 +12,11 @@ export function useMe() {
   });
 }
 
-export function useDashboard() {
+export function useDashboard(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['dashboard'],
     queryFn: () => api.get<DashboardSummary>('/users/me/dashboard'),
     retry: false,
+    enabled: options?.enabled ?? true,
   });
 }
