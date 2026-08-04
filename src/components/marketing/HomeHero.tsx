@@ -56,7 +56,7 @@ export function HomeHero() {
             </p>
           </div>
 
-          <div className="relative h-[220px] sm:h-[320px]">
+          <div className="relative h-[300px] overflow-hidden rounded-lg sm:h-[420px]">
             <Home
               className="pointer-events-none absolute -right-4 -top-2 h-[120%] w-[120%] text-white/[0.05]"
               strokeWidth={1}
@@ -67,7 +67,7 @@ export function HomeHero() {
               width={1400}
               height={1120}
               priority
-              className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto max-w-full object-contain object-bottom"
+              className="absolute inset-0 h-full w-full object-cover object-[center_bottom]"
             />
           </div>
         </div>
