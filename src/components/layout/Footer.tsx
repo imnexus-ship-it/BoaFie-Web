@@ -49,6 +49,7 @@ const COLUMNS = [
     links: [
       { href: '/about', label: 'About us' },
       { href: '/contact', label: 'Contact' },
+      { href: '/trust-safety', label: 'Trust & Safety' },
     ],
   },
 ];

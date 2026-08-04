@@ -63,6 +63,7 @@ export function HomeHeader() {
             items={[
               { href: '/contact', label: 'Contact' },
               { href: '/pricing', label: 'Pricing' },
+              { href: '/trust-safety', label: 'Trust & Safety' },
               { href: '/privacy', label: 'Privacy Policy' },
               { href: '/terms', label: 'Terms of Service' },
             ]}
