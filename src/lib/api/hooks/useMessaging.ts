@@ -9,6 +9,8 @@ export interface Conversation {
   job_id?: string | null;
   contract_id?: string | null;
   last_message_at?: string | null;
+  other_participant?: { id: string; full_name: string; avatar_url?: string | null } | null;
+  last_message?: { content: string | null; type: string; created_at: string } | null;
 }
 
 export type MessageType = 'text' | 'image' | 'file' | 'voice_note' | 'video' | 'quotation' | 'milestone_update' | 'system';

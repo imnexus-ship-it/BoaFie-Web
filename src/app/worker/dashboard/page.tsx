@@ -3,11 +3,27 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, Wallet, CheckCircle2, ShieldCheck, Search, MapPin, ArrowRight, Briefcase, Sparkles, X } from 'lucide-react';
+import {
+  Send,
+  Wallet,
+  CheckCircle2,
+  ShieldCheck,
+  Search,
+  MapPin,
+  ArrowRight,
+  Briefcase,
+  Sparkles,
+  X,
+  MessageSquare,
+  Star,
+  TrendingUp,
+} from 'lucide-react';
 import { StatsGrid } from '@/components/admin/StatsGrid';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
+import { Select } from '@/components/ui/Select';
+import { StarRating } from '@/components/ui/StarRating';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -20,11 +36,28 @@ import { useMyProposals } from '@/lib/api/hooks/useProposals';
 import { useRecommendedJobs } from '@/lib/api/hooks/useJobs';
 import { useVerificationStatus } from '@/lib/api/hooks/useVerification';
 import { useNotifications } from '@/lib/api/hooks/useNotifications';
+import { useConversations } from '@/lib/api/hooks/useMessaging';
+import { useWorkerReviews } from '@/lib/api/hooks/useReviews';
+import {
+  useMyArtisanProfile,
+  useUpdateArtisanAvailability,
+} from '@/lib/api/hooks/useArtisans';
+import {
+  useMyFreelancerProfile,
+  useUpdateFreelancerAvailability,
+} from '@/lib/api/hooks/useFreelancers';
+import { useAuthStore } from '@/lib/store/auth-store';
 import { formatCurrency, formatBudgetRange } from '@/lib/utils/currency';
 import { timeAgo } from '@/lib/utils/date';
 import { Contract } from '@/lib/api/types';
 import { getPlan, PENDING_PLAN_STORAGE_KEY } from '@/lib/constants/plans';
 import { JUST_SIGNED_UP_KEY } from '@/lib/api/hooks/useAuth';
+
+const AVAILABILITY_OPTIONS = [
+  { value: 'available', label: 'Available for work' },
+  { value: 'busy', label: 'Busy' },
+  { value: 'unavailable', label: 'Unavailable' },
+];
 
 const STATUS_BADGE: Record<string, { variant: 'green' | 'gold' | 'danger' | 'muted'; label: string }> = {
   in_progress: { variant: 'gold', label: 'In Progress' },
@@ -39,6 +72,8 @@ function otherParty(contract: Contract) {
 
 export default function WorkerDashboardPage() {
   const router = useRouter();
+  const currentUser = useAuthStore((s) => s.user);
+  const isArtisan = currentUser?.role === 'artisan';
   const { data, isLoading, isError, error, refetch } = useDashboard();
   const contracts = useContracts();
   const wallet = useWallet();
@@ -46,6 +81,14 @@ export default function WorkerDashboardPage() {
   const recommended = useRecommendedJobs();
   const verification = useVerificationStatus();
   const notifications = useNotifications();
+  const conversations = useConversations();
+  const reviews = useWorkerReviews(currentUser?.id);
+  const artisanProfile = useMyArtisanProfile();
+  const freelancerProfile = useMyFreelancerProfile();
+  const updateArtisanAvailability = useUpdateArtisanAvailability();
+  const updateFreelancerAvailability = useUpdateFreelancerAvailability();
+  const availability = isArtisan ? artisanProfile.data?.availability : freelancerProfile.data?.availability;
+  const updateAvailability = isArtisan ? updateArtisanAvailability : updateFreelancerAvailability;
 
   const [category, setCategory] = useState('');
   const [location, setLocation] = useState('Accra, Ghana');
@@ -351,6 +394,81 @@ export default function WorkerDashboardPage() {
 
           return incomplete ? [verificationCard, earningsCard] : [earningsCard, verificationCard];
         })()}
+
+        <div className="rounded-lg border border-border bg-white p-5">
+          <div className="flex items-center justify-between">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-charcoal">
+              <MessageSquare className="h-4 w-4 text-muted" /> Messages
+            </p>
+            <Link href="/worker/messages" className="text-xs font-medium text-green hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="mt-3 space-y-3">
+            {conversations.isError ? (
+              <p className="text-xs text-muted">Couldn't load messages.</p>
+            ) : (conversations.data ?? []).length === 0 && !conversations.isLoading ? (
+              <p className="text-xs text-muted">No conversations yet.</p>
+            ) : (
+              (conversations.data ?? []).slice(0, 4).map((c) => (
+                <Link key={c.id} href={`/worker/messages/${c.id}`} className="flex items-center gap-3">
+                  <Avatar src={c.other_participant?.avatar_url} name={c.other_participant?.full_name} size={36} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-charcoal">{c.other_participant?.full_name ?? 'BoaFie user'}</p>
+                    <p className="truncate text-xs text-muted">{c.last_message?.content ?? 'No messages yet'}</p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Ratings, availability, and a quick performance summary in one place. */}
+        <div className="rounded-lg border border-border bg-white p-5">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-charcoal">
+            <TrendingUp className="h-4 w-4 text-muted" /> Performance
+          </p>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-xs text-muted">Rating</span>
+            {reviews.data?.count ? (
+              <span className="flex items-center gap-1.5">
+                <StarRating value={reviews.data.average_rating ?? 0} size={12} />
+                <span className="text-xs font-medium text-charcoal">
+                  {reviews.data.average_rating?.toFixed(1)} ({reviews.data.count})
+                </span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs text-muted">
+                <Star className="h-3 w-3" /> No reviews yet
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-xs text-muted">Jobs completed</span>
+            <span className="text-xs font-medium text-charcoal">{completedContracts.length}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-xs text-muted">Lifetime earned</span>
+            <span className="text-xs font-medium text-charcoal">
+              {wallet.data ? formatCurrency(wallet.data.lifetime_earned, wallet.data.currency) : '—'}
+            </span>
+          </div>
+
+          <div className="mt-4 border-t border-border pt-4">
+            <Select
+              label="Availability"
+              value={availability ?? 'available'}
+              onChange={(e) => updateAvailability.mutate(e.target.value)}
+            >
+              {AVAILABILITY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </Select>
+            <p className="mt-1.5 text-[11px] text-muted">Clients see this on your public profile.</p>
+          </div>
+        </div>
 
         <div className="rounded-lg border border-border bg-white p-5">
           <div className="flex items-center justify-between">

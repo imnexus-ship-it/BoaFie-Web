@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Award, Briefcase, Clock, ExternalLink, MapPin, ShieldCheck } from 'lucide-react';
+import { Award, Bookmark, Briefcase, Clock, ExternalLink, MapPin, ShieldCheck } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -16,7 +16,9 @@ import { useFreelancer } from '@/lib/api/hooks/useFreelancers';
 import { useConversations, useCreateConversation } from '@/lib/api/hooks/useMessaging';
 import { useWorkerReviews } from '@/lib/api/hooks/useReviews';
 import { usePublicPortfolio } from '@/lib/api/hooks/usePortfolio';
+import { useSavedProfessionals, useSaveProfessional, useUnsaveProfessional } from '@/lib/api/hooks/useSavedProfessionals';
 import { useAuthStore } from '@/lib/store/auth-store';
+import { cn } from '@/lib/utils/cn';
 
 const MESSAGES_BASE: Record<string, string> = {
   client: '/messages',
@@ -43,6 +45,10 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
   const currentUser = useAuthStore((s) => s.user);
   const conversations = useConversations();
   const createConversation = useCreateConversation();
+  const isClient = currentUser?.role === 'client';
+  const savedProfessionals = useSavedProfessionals();
+  const saveProfessional = useSaveProfessional();
+  const unsaveProfessional = useUnsaveProfessional();
 
   // Profile IDs aren't namespaced by type in the URL, so try artisan first,
   // fall back to freelancer. (A combined /workers/:id lookup on the API would
@@ -169,6 +175,25 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
                 Message to request a quote
               </Button>
             )}
+
+            {isClient && (() => {
+              const saved = savedProfessionals.data?.some((s) => s.worker_user_id === worker.user_id);
+              return (
+                <button
+                  className={cn(
+                    'mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium sm:w-auto',
+                    saved ? 'border-gold bg-gold-3 text-gold' : 'border-border text-muted hover:border-charcoal hover:text-charcoal',
+                  )}
+                  disabled={saveProfessional.isPending || unsaveProfessional.isPending}
+                  onClick={() =>
+                    saved ? unsaveProfessional.mutate(worker.user_id) : saveProfessional.mutate(worker.user_id)
+                  }
+                >
+                  <Bookmark className={cn('h-3.5 w-3.5', saved && 'fill-gold text-gold')} />
+                  {saved ? 'Saved' : 'Save professional'}
+                </button>
+              );
+            })()}
           </div>
         </CardBody>
       </Card>

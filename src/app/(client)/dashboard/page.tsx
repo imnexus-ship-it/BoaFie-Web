@@ -15,6 +15,9 @@ import {
   MapPin,
   ArrowRight,
   Gift,
+  MessageSquare,
+  Bookmark,
+  LifeBuoy,
 } from 'lucide-react';
 import { StatsGrid } from '@/components/admin/StatsGrid';
 import { Button } from '@/components/ui';
@@ -28,6 +31,8 @@ import { useContracts } from '@/lib/api/hooks/useContracts';
 import { useWallet } from '@/lib/api/hooks/useWallet';
 import { useArtisans } from '@/lib/api/hooks/useArtisans';
 import { useNotifications } from '@/lib/api/hooks/useNotifications';
+import { useConversations } from '@/lib/api/hooks/useMessaging';
+import { useSavedProfessionals } from '@/lib/api/hooks/useSavedProfessionals';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { formatCurrency } from '@/lib/utils/currency';
 import { timeAgo } from '@/lib/utils/date';
@@ -53,6 +58,8 @@ export default function ClientDashboardPage() {
   const wallet = useWallet();
   const professionals = useArtisans({ limit: 4 });
   const notifications = useNotifications();
+  const conversations = useConversations();
+  const savedProfessionals = useSavedProfessionals();
 
   const [service, setService] = useState('');
   const [location, setLocation] = useState('Accra, Ghana');
@@ -132,15 +139,26 @@ export default function ClientDashboardPage() {
           </div>
         </div>
 
-        {/* Stats — action/risk framed for a hirer, not passive counts */}
+        {/* Stats — action/risk framed for a hirer, not passive counts. Pending
+            actions leads since it's the thing most likely to need this
+            client's attention right now (real submitted-milestone count, not
+            just a proxy for "has an active project"). */}
         <StatsGrid
           stats={[
             {
-              label: 'Needs Review',
-              value: activeProjects.length,
+              label: 'Pending Actions',
+              value: data.pending_actions ?? 0,
               icon: Briefcase,
               iconBg: 'bg-gold-3',
               iconColor: 'text-gold',
+              href: '/contracts',
+            },
+            {
+              label: 'Active Projects',
+              value: activeProjects.length,
+              icon: Briefcase,
+              iconBg: 'bg-green-3',
+              iconColor: 'text-success',
               href: '/contracts',
             },
             {
@@ -158,14 +176,6 @@ export default function ClientDashboardPage() {
               iconBg: 'bg-green-3',
               iconColor: 'text-success',
               href: '/contracts',
-            },
-            {
-              label: 'Total Invested',
-              value: formatCurrency(totalSpent),
-              icon: Wallet,
-              iconBg: 'bg-navy/10',
-              iconColor: 'text-navy',
-              href: '/payments',
             },
           ]}
         />
@@ -262,9 +272,68 @@ export default function ClientDashboardPage() {
           </Link>
         </div>
 
+        {/* Actionable panels come before the passive analytics card below. */}
         <div className="rounded-lg border border-border bg-white p-5">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-charcoal">Browse Professionals</p>
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-charcoal">
+              <MessageSquare className="h-4 w-4 text-muted" /> Messages
+            </p>
+            <Link href="/messages" className="text-xs font-medium text-green hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="mt-3 space-y-3">
+            {conversations.isError ? (
+              <p className="text-xs text-muted">Couldn't load messages.</p>
+            ) : (conversations.data ?? []).length === 0 && !conversations.isLoading ? (
+              <p className="text-xs text-muted">No conversations yet.</p>
+            ) : (
+              (conversations.data ?? []).slice(0, 4).map((c) => (
+                <Link key={c.id} href={`/messages/${c.id}`} className="flex items-center gap-3">
+                  <Avatar src={c.other_participant?.avatar_url} name={c.other_participant?.full_name} size={36} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-charcoal">{c.other_participant?.full_name ?? 'BoaFie user'}</p>
+                    <p className="truncate text-xs text-muted">{c.last_message?.content ?? 'No messages yet'}</p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-white p-5">
+          <div className="flex items-center justify-between">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-charcoal">
+              <Bookmark className="h-4 w-4 text-muted" /> Saved Professionals
+            </p>
+            <Link href="/explore" className="text-xs font-medium text-green hover:underline">
+              Find more
+            </Link>
+          </div>
+          <div className="mt-3 space-y-3">
+            {savedProfessionals.isError ? (
+              <p className="text-xs text-muted">Couldn't load saved professionals.</p>
+            ) : (savedProfessionals.data ?? []).length === 0 && !savedProfessionals.isLoading ? (
+              <p className="text-xs text-muted">
+                Save a professional's profile to find them here later.
+              </p>
+            ) : (
+              (savedProfessionals.data ?? []).slice(0, 4).map((p) => (
+                <Link key={p.id} href={`/explore/${p.profile_id ?? p.worker_user_id}`} className="flex items-center gap-3">
+                  <Avatar src={p.avatar_url} name={p.full_name} size={36} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-charcoal">{p.full_name}</p>
+                    <p className="truncate text-xs capitalize text-muted">{p.heading ?? p.role}</p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-white p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-charcoal">Recommended Professionals</p>
             <Link href="/explore" className="text-xs font-medium text-green hover:underline">
               View all
             </Link>
@@ -287,29 +356,6 @@ export default function ClientDashboardPage() {
                 </Link>
               ))
             )}
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-white p-5">
-          <p className="text-sm font-semibold text-charcoal">Account Summary</p>
-          <p className="mt-1 text-xs text-muted">
-            {firstName}
-            {me.data?.created_at &&
-              `, member since ${new Date(me.data.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`}
-          </p>
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-            <div>
-              <p className="font-head text-lg font-bold text-charcoal">{data.active_jobs ?? 0}</p>
-              <p className="text-[11px] text-muted">Jobs Posted</p>
-            </div>
-            <div>
-              <p className="font-head text-lg font-bold text-charcoal">{completedProjects.length}</p>
-              <p className="text-[11px] text-muted">Completed</p>
-            </div>
-            <div>
-              <p className="font-head text-lg font-bold text-charcoal">{activeProjects.length}</p>
-              <p className="text-[11px] text-muted">In Progress</p>
-            </div>
           </div>
         </div>
 
@@ -338,6 +384,41 @@ export default function ClientDashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Secondary analytics — deliberately placed after every actionable panel above. */}
+        <div className="rounded-lg border border-border bg-white p-5">
+          <p className="text-sm font-semibold text-charcoal">Account Summary</p>
+          <p className="mt-1 text-xs text-muted">
+            {firstName}
+            {me.data?.created_at &&
+              `, member since ${new Date(me.data.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`}
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-2 text-center">
+            <div>
+              <p className="font-head text-lg font-bold text-charcoal">{data.active_jobs ?? 0}</p>
+              <p className="text-[11px] text-muted">Jobs Posted</p>
+            </div>
+            <div>
+              <p className="font-head text-lg font-bold text-charcoal">{completedProjects.length}</p>
+              <p className="text-[11px] text-muted">Completed</p>
+            </div>
+            <div>
+              <p className="font-head text-lg font-bold text-charcoal">{activeProjects.length}</p>
+              <p className="text-[11px] text-muted">In Progress</p>
+            </div>
+            <div>
+              <p className="font-head text-lg font-bold text-charcoal">{formatCurrency(totalSpent)}</p>
+              <p className="text-[11px] text-muted">Total Invested</p>
+            </div>
+          </div>
+        </div>
+
+        <Link
+          href="/contact"
+          className="flex items-center gap-3 rounded-lg border border-border bg-white p-4 text-sm font-medium text-charcoal hover:border-green hover:text-green"
+        >
+          <LifeBuoy className="h-4 w-4 shrink-0" /> Need help? Contact support
+        </Link>
       </div>
     </div>
   );

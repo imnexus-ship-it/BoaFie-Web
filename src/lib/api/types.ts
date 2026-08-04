@@ -241,6 +241,7 @@ export interface DashboardSummary {
   active_jobs?: number;
   open_contracts?: number;
   active_proposals?: number;
+  pending_actions?: number;
   unread_notifications: number;
   wallet?: { balance_ghs: number; pending_ghs: number; lifetime_earned: number } | null;
 }
