@@ -14,3 +14,4 @@ export * from './ErrorState';
 export * from './Modal';
 export * from './Pagination';
 export * from './FileUpload';
+export * from './Switch';

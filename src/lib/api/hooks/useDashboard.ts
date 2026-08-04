@@ -18,5 +18,7 @@ export function useDashboard(options?: { enabled?: boolean }) {
     queryFn: () => api.get<DashboardSummary>('/users/me/dashboard'),
     retry: false,
     enabled: options?.enabled ?? true,
+    // Keeps the notification-bell unread badge fresh without a manual refresh.
+    refetchInterval: 30_000,
   });
 }

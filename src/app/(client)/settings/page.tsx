@@ -10,6 +10,7 @@ import { useMe } from '@/lib/api/hooks/useDashboard';
 import { api } from '@/lib/api/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { DeleteAccountCard } from '@/components/settings/DeleteAccountCard';
+import { NotificationPreferencesCard } from '@/components/settings/NotificationPreferencesCard';
 
 export default function ClientSettingsPage() {
   const { data: me, isLoading } = useMe();
@@ -73,6 +74,10 @@ export default function ClientSettingsPage() {
           </form>
         </CardBody>
       </Card>
+
+      <div className="mt-6">
+        <NotificationPreferencesCard />
+      </div>
 
       <div className="mt-6">
         <DeleteAccountCard />
