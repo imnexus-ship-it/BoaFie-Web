@@ -3,6 +3,7 @@ import { Manrope } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/lib/api/query-provider';
 import { GoogleTranslateInit } from '@/components/layout/GoogleTranslateInit';
+import { SupportChatWidget } from '@/components/support/SupportChatWidget';
 
 // Rounded geometric sans, used for both headings and body — the two
 // font-family tokens (head/body) in tailwind.config.ts both point at this
@@ -20,7 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={manrope.variable}>
       <body>
         <GoogleTranslateInit />
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          {children}
+          <SupportChatWidget />
+        </QueryProvider>
       </body>
     </html>
   );
