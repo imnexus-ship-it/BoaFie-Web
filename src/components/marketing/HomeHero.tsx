@@ -62,7 +62,7 @@ export function HomeHero() {
         </div>
 
         {/* Right: hero photo + trust card */}
-        <div className="relative hidden h-[560px] lg:block">
+        <div className="relative -mt-10 hidden h-[660px] lg:block">
           <Home
             className="pointer-events-none absolute -right-10 -top-6 h-[130%] w-[130%] text-white/[0.04]"
             strokeWidth={1}
