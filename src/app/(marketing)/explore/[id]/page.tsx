@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { MapPin, Briefcase } from 'lucide-react';
+import { Award, Briefcase, Clock, ExternalLink, MapPin, ShieldCheck } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +15,7 @@ import { useArtisan } from '@/lib/api/hooks/useArtisans';
 import { useFreelancer } from '@/lib/api/hooks/useFreelancers';
 import { useConversations, useCreateConversation } from '@/lib/api/hooks/useMessaging';
 import { useWorkerReviews } from '@/lib/api/hooks/useReviews';
+import { usePublicPortfolio } from '@/lib/api/hooks/usePortfolio';
 import { useAuthStore } from '@/lib/store/auth-store';
 
 const MESSAGES_BASE: Record<string, string> = {
@@ -22,6 +23,19 @@ const MESSAGES_BASE: Record<string, string> = {
   artisan: '/worker/messages',
   freelancer: '/worker/messages',
 };
+
+const AVAILABILITY_LABEL: Record<string, { label: string; variant: 'green' | 'gold' | 'muted' }> = {
+  available: { label: 'Available now', variant: 'green' },
+  busy: { label: 'Currently busy', variant: 'gold' },
+  unavailable: { label: 'Unavailable', variant: 'muted' },
+};
+
+function rateLabel(worker: any): string | null {
+  if (worker.pricing_model === 'hourly' && worker.hourly_rate_ghs) return `${formatCurrency(worker.hourly_rate_ghs)}/hr`;
+  if (worker.pricing_model === 'daily' && worker.daily_rate_ghs) return `${formatCurrency(worker.daily_rate_ghs)}/day`;
+  if (worker.pricing_model === 'fixed' && worker.fixed_rate_min_ghs) return `From ${formatCurrency(worker.fixed_rate_min_ghs)}`;
+  return null;
+}
 
 export default function WorkerProfilePage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -36,10 +50,11 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
   const artisan = useArtisan(id);
   const freelancer = useFreelancer(artisan.isError ? id : undefined);
   const reviews = useWorkerReviews(artisan.data?.user_id ?? freelancer.data?.user_id);
+  const portfolio = usePublicPortfolio(artisan.data?.user_id ?? freelancer.data?.user_id);
 
   if (artisan.isLoading || (artisan.isError && freelancer.isLoading)) return <PageSpinner />;
 
-  const worker = artisan.data || freelancer.data;
+  const worker = artisan.data || (freelancer.data as any);
   if (!worker) return <ErrorState message="Worker not found" />;
 
   const messagesBase = currentUser ? MESSAGES_BASE[currentUser.role] : undefined;
@@ -61,8 +76,11 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
 
   const isArtisan = !!artisan.data;
   const name = worker.users?.full_name || 'BoaFie worker';
-  const heading = isArtisan ? (worker as any).trade_category : (worker as any).title;
-  const verified = worker.users?.status === 'active';
+  const heading = isArtisan ? worker.trade_category : worker.title;
+  const verified = !!worker.verified;
+  const skills: string[] = worker.skills || worker.trade_subcategories || [];
+  const availability = AVAILABILITY_LABEL[worker.availability as string];
+  const rate = rateLabel(worker);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-8">
@@ -73,6 +91,7 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-head text-xl font-bold text-charcoal">{name}</h1>
               {verified && <Badge variant="green">Verified</Badge>}
+              {availability && <Badge variant={availability.variant}>{availability.label}</Badge>}
             </div>
             <p className="mt-1 capitalize text-muted">{heading}</p>
             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted">
@@ -91,20 +110,89 @@ export default function WorkerProfilePage({ params }: { params: { id: string } }
                 </span>
               )}
             </div>
+
+            {skills.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {skills.map((s) => (
+                  <span key={s} className="rounded-pill bg-black/5 px-2.5 py-1 text-xs text-charcoal">
+                    {s}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {isArtisan && worker.trade_cert_verified && (
+              <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-green">
+                <Award className="h-3.5 w-3.5" /> Trade certificate verified
+              </p>
+            )}
+            {!isArtisan && (worker.portfolio_url || worker.linkedin_url || worker.github_url) && (
+              <div className="mt-3 flex flex-wrap gap-3">
+                {worker.portfolio_url && (
+                  <a href={worker.portfolio_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-medium text-green hover:underline">
+                    <ExternalLink className="h-3 w-3" /> Portfolio
+                  </a>
+                )}
+                {worker.linkedin_url && (
+                  <a href={worker.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-medium text-green hover:underline">
+                    <ExternalLink className="h-3 w-3" /> LinkedIn
+                  </a>
+                )}
+                {worker.github_url && (
+                  <a href={worker.github_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-medium text-green hover:underline">
+                    <ExternalLink className="h-3 w-3" /> GitHub
+                  </a>
+                )}
+              </div>
+            )}
+
             {worker.ai_bio && <p className="mt-4 text-sm text-charcoal">{worker.ai_bio}</p>}
           </div>
-          <div className="text-right">
-            {worker.hourly_rate_ghs && (
-              <p className="font-head text-xl font-bold text-green">{formatCurrency(worker.hourly_rate_ghs)}/hr</p>
-            )}
+
+          <div className="w-full text-right sm:w-auto">
+            {rate && <p className="font-head text-xl font-bold text-green">{rate}</p>}
+
+            {/* Trust info sits right next to the primary action, not just up top. */}
+            <div className="mt-2 flex flex-col items-end gap-1">
+              {verified && (
+                <span className="flex items-center gap-1 text-xs font-medium text-green">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Identity verified
+                </span>
+              )}
+              <span className="flex items-center gap-1 text-xs text-muted">
+                <Clock className="h-3.5 w-3.5" /> Escrow-protected payments
+              </span>
+            </div>
+
             {(!currentUser || messagesBase) && (
-              <Button className="mt-3" loading={createConversation.isPending} onClick={handleContact}>
-                Contact
+              <Button className="mt-3 w-full sm:w-auto" loading={createConversation.isPending} onClick={handleContact}>
+                Message to request a quote
               </Button>
             )}
           </div>
         </CardBody>
       </Card>
+
+      {!!portfolio.data?.length && (
+        <Card className="mt-6">
+          <CardBody>
+            <h2 className="mb-4 font-head text-base font-semibold text-charcoal">Portfolio</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {portfolio.data.map((item) => (
+                <div key={item.id} className="overflow-hidden rounded-lg border border-border">
+                  {item.media_urls?.[0] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.media_urls[0]} alt={item.title} className="h-32 w-full object-cover" />
+                  )}
+                  <div className="p-2.5">
+                    <p className="truncate text-xs font-medium text-charcoal">{item.title}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       {!!reviews.data?.items.length && (
         <Card className="mt-6">
