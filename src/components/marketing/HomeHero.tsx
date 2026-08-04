@@ -62,7 +62,7 @@ export function HomeHero() {
         </div>
 
         {/* Right: hero photo + trust card */}
-        <div className="relative -mt-14 hidden h-[600px] lg:block">
+        <div className="relative h-[300px] sm:h-[380px] lg:-mt-14 lg:h-[600px]">
           <Home
             className="pointer-events-none absolute -right-10 -top-6 h-[130%] w-[130%] text-white/[0.04]"
             strokeWidth={1}
@@ -73,10 +73,10 @@ export function HomeHero() {
             width={1400}
             height={1120}
             priority
-            className="absolute bottom-0 left-1/2 h-full w-auto max-w-none -translate-x-1/2 object-contain object-bottom"
+            className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto max-w-full object-contain object-bottom lg:inset-x-auto lg:left-1/2 lg:mx-0 lg:max-w-none lg:-translate-x-1/2"
           />
 
-          <div className="absolute left-0 top-[40%] z-10 flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 p-4 shadow-card backdrop-blur-md">
+          <div className="absolute left-0 top-[40%] z-10 flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 p-2.5 shadow-card backdrop-blur-md sm:gap-3 sm:p-4">
             <div className="flex -space-x-2">
               <Avatar name="K A" size={32} className="border-2 border-navy" />
               <Avatar name="A S" size={32} className="border-2 border-navy" />
